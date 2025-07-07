@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Car Wash Peña Blanca{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-tachometer-alt"></i> Dashboard - Car Wash Peña Blanca
+            <small class="text-muted d-block">Peña Blanca, Cortés | Tel: 97164446</small>
+        </h1>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-primary text-white stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-1">{{ daily_invoices }}</h3>
+                        <p class="mb-0">Facturas Hoy</p>
+                        <small class="opacity-75">{{ monthly_invoices }} este mes</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-file-invoice-dollar fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-success text-white stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-1">{{ format_lempiras(daily_sales) }}</h3>
+                        <p class="mb-0">Ventas Hoy</p>
+                        <small class="opacity-75">{{ format_lempiras(monthly_sales) }} este mes</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-lira-sign fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-info text-white stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-1">{{ daily_appointments }}</h3>
+                        <p class="mb-0">Citas Hoy</p>
+                        <small class="opacity-75">{{ pending_appointments }} pendientes</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-check fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card bg-warning text-white stats-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-1">{{ total_customers }}</h3>
+                        <p class="mb-0">Clientes Totales</p>
+                        <small class="opacity-75">{{ new_customers_month }} nuevos este mes</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity and Quick Actions -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-clock"></i> Últimas Facturas</h5>
+                <div>
+                    <a href="{{ url_for('invoice') }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> Nueva Factura
+                    </a>
+                    <a href="#" onclick="exportDailyInvoices()" class="btn btn-sm btn-success">
+                        <i class="fas fa-file-excel"></i> Exportar Excel
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_invoices %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Factura</th>
+                                <th>Cliente</th>
+                                <th>Total</th>
+                                <th>Método</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in recent_invoices %}
+                            <tr>
+                                <td><span class="badge bg-secondary">{{ invoice.invoice_number }}</span></td>
+                                <td>{{ invoice.customer.name }}</td>
+                                <td><strong>{{ format_lempiras(invoice.total_amount) }}</strong></td>
+                                <td>
+                                    <span class="badge bg-{% if invoice.payment_method == 'efectivo' %}success{% elif invoice.payment_method == 'tarjeta' %}info{% else %}warning{% endif %}">
+                                        {{ invoice.payment_method|title }}
+                                    </span>
+                                </td>
+                                <td>{{ invoice.created_at.strftime('%H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('print_invoice', invoice_id=invoice.id) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                        <i class="fas fa-print"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-file-invoice fa-3x mb-3"></i>
+                    <p>No hay facturas registradas hoy</p>
+                    <a href="{{ url_for('invoice') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Primera Factura
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5><i class="fas fa-bolt"></i> Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('invoice') }}" class="btn btn-primary">
+                        <i class="fas fa-file-invoice"></i> Nueva Factura
+                    </a>
+                    <a href="{{ url_for('customers') }}" class="btn btn-info">
+                        <i class="fas fa-user-plus"></i> Agregar Cliente
+                    </a>
+                    <a href="{{ url_for('appointments') }}" class="btn btn-success">
+                        <i class="fab fa-whatsapp"></i> Nueva Cita
+                    </a>
+                    <a href="{{ url_for('inventory') }}" class="btn btn-warning">
+                        <i class="fas fa-boxes"></i> Gestionar Inventario
+                    </a>
+                    <a href="{{ url_for('cash_closing') }}" class="btn btn-danger">
+                        <i class="fas fa-cash-register"></i> Arqueo de Caja
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Today's Appointments -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-calendar-day"></i> Citas de Hoy</h5>
+            </div>
+            <div class="card-body">
+                {% if today_appointments %}
+                {% for appointment in today_appointments %}
+                <div class="appointment-item mb-2 p-2 border rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">{{ appointment.customer.name }}</h6>
+                            <small class="text-muted">{{ appointment.service_type.name }}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-primary">{{ appointment.appointment_date.strftime('%H:%M') }}</span>
+                            <br>
+                            <small class="text-muted">{{ format_lempiras(appointment.service_type.price) }}</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center py-3 text-muted">
+                    <i class="fas fa-calendar-times fa-2x mb-2"></i>
+                    <p>No hay citas programadas para hoy</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Alerts -->
+{% if low_stock_products %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5><i class="fas fa-exclamation-triangle"></i> Alerta de Inventario</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Productos con stock bajo:</strong></p>
+                <div class="row">
+                    {% for product in low_stock_products %}
+                    <div class="col-md-3 mb-2">
+                        <div class="alert alert-warning py-2 mb-0">
+                            <strong>{{ product.name }}</strong><br>
+                            <small>Stock: {{ product.stock }} unidades</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function exportDailyInvoices() {
+    window.location.href = '/export_invoices?date=' + new Date().toISOString().split('T')[0];
+}
+</script>
+{% endblock %}

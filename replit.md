@@ -112,8 +112,24 @@ Car Wash Peña Blanca is a comprehensive Point of Sale (POS) and Customer Relati
 - Responsive design for mobile device support
 
 ## Changelog
-- July 07, 2025. Initial setup
+- July 07, 2025: Initial setup
+- July 07, 2025: Phone number updated to 97164446
+- July 07, 2025: CSRF tokens added to all forms to fix saving issues
+- July 07, 2025: Enhanced dashboard with comprehensive metrics and Excel export
+- July 07, 2025: Invoice preview functionality with cash payment denominations tracking
+- July 07, 2025: Excel export feature for daily invoice backup implemented
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+## Recent Issues Fixed
+- ✓ Customers not saving - Fixed CSRF token issues
+- ✓ Products not saving - Fixed CSRF token issues  
+- ✓ Invoices not generating - Fixed CSRF token issues
+- ✓ Appointments not saving - Fixed CSRF token issues
+- ✓ Dashboard too simple - Enhanced with detailed metrics
+- ✓ No invoice preview - Added preview modal
+- ✓ No cash denomination tracking - Added cash payment modal with bill/coin counting
+- ✓ No Excel export - Added daily invoice export feature
+- ✓ Phone number correction - Updated to 97164446 throughout system

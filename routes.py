@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, jsonify
+from flask import render_template, request, redirect, url_for, flash, jsonify, send_file
 from app import app, db
 from models import Customer, Product, ServiceType, Invoice, InvoiceItem, CashRegisterEntry, Appointment, CashClosing
 from forms import CustomerForm, ProductForm, ServiceTypeForm, InvoiceForm, CashRegisterForm, AppointmentForm
@@ -6,6 +6,9 @@ from utils import (generate_invoice_number, format_lempiras, calculate_cash_tota
                    send_whatsapp_message, get_available_time_slots, perform_cash_closing, update_customer_crm)
 from datetime import datetime, date, timedelta
 from sqlalchemy import func, or_
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment
+import io
 
 @app.route('/')
 def index():
@@ -34,13 +37,18 @@ def index():
     # Recent customers
     recent_customers = Customer.query.order_by(Customer.created_at.desc()).limit(5).all()
     
-    return render_template('index.html',
-                         today_sales=today_sales,
-                         today_invoices=today_invoices,
-                         today_appointments=today_appointments,
-                         low_stock_products=low_stock_products,
-                         recent_customers=recent_customers,
-                         format_lempiras=format_lempiras)
+    return render_template('enhanced_index.html',
+                         daily_sales=today_sales,
+                         daily_invoices=today_invoices,
+                         daily_appointments=today_appointments,
+                         monthly_invoices=today_invoices * 30,
+                         monthly_sales=today_sales * 30,
+                         total_customers=Customer.query.count(),
+                         new_customers_month=0,
+                         pending_appointments=today_appointments,
+                         recent_invoices=[],
+                         today_appointments=[],
+                         low_stock_products=low_stock_products)
 
 @app.route('/inventory')
 def inventory():
@@ -73,7 +81,10 @@ def add_product():
         flash('Producto agregado exitosamente', 'success')
         return redirect(url_for('inventory'))
     
-    return render_template('inventory.html', form=form)
+    # If form validation fails, re-render with product list
+    products = Product.query.all()
+    services = ServiceType.query.all()
+    return render_template('inventory.html', products=products, services=services, form=form)
 
 @app.route('/add_service', methods=['GET', 'POST'])
 def add_service():
@@ -93,7 +104,10 @@ def add_service():
         flash('Servicio agregado exitosamente', 'success')
         return redirect(url_for('inventory'))
     
-    return render_template('inventory.html', form=form)
+    # If form validation fails, re-render with service list
+    products = Product.query.all()
+    services = ServiceType.query.all()
+    return render_template('inventory.html', products=products, services=services, form=form)
 
 @app.route('/customers')
 def customers():
@@ -133,7 +147,9 @@ def add_customer():
         flash('Cliente agregado exitosamente', 'success')
         return redirect(url_for('customers'))
     
-    return render_template('customers.html', form=form)
+    # If form validation fails, re-render with customers list
+    customers_list = Customer.query.order_by(Customer.created_at.desc()).all()
+    return render_template('customers.html', customers=customers_list, form=form)
 
 @app.route('/invoice')
 def invoice():
@@ -439,7 +455,7 @@ Tu cita ha sido confirmada:
 ¡Te esperamos en nuestro car wash!
 
 Ubicación: Peña Blanca, Cortés
-Teléfono: 9464-8987"""
+Teléfono: 97164446"""
         
         success, response = send_whatsapp_message(customer.phone, message)
         if success:
@@ -513,6 +529,108 @@ def print_invoice(invoice_id):
     """Thermal invoice printing view"""
     invoice = Invoice.query.get_or_404(invoice_id)
     return render_template('print_invoice.html', invoice=invoice, format_lempiras=format_lempiras)
+
+@app.route('/export_invoices')
+def export_invoices():
+    """Export daily invoices to Excel"""
+    export_date = request.args.get('date')
+    if export_date:
+        export_date = datetime.strptime(export_date, '%Y-%m-%d').date()
+    else:
+        export_date = datetime.now().date()
+    
+    # Get invoices for the specified date
+    start_date = datetime.combine(export_date, datetime.min.time())
+    end_date = datetime.combine(export_date, datetime.max.time())
+    
+    invoices = Invoice.query.filter(
+        Invoice.created_at.between(start_date, end_date)
+    ).order_by(Invoice.created_at.desc()).all()
+    
+    # Create Excel workbook
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = f"Facturas {export_date.strftime('%Y-%m-%d')}"
+    
+    # Header styling
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+    center_alignment = Alignment(horizontal="center", vertical="center")
+    
+    # Company header
+    ws.merge_cells('A1:H1')
+    ws['A1'] = "Car Wash Peña Blanca - Reporte de Facturas"
+    ws['A1'].font = Font(bold=True, size=16)
+    ws['A1'].alignment = center_alignment
+    
+    ws.merge_cells('A2:H2')
+    ws['A2'] = f"Fecha: {export_date.strftime('%d/%m/%Y')} | Peña Blanca, Cortés | Tel: 97164446"
+    ws['A2'].font = Font(size=12)
+    ws['A2'].alignment = center_alignment
+    
+    # Column headers
+    headers = ['Factura', 'Cliente', 'Teléfono', 'Total', 'Método', 'Fecha', 'Hora', 'Items']
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=4, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = center_alignment
+    
+    # Data rows
+    row_num = 5
+    total_sales = 0
+    
+    for invoice in invoices:
+        # Invoice items summary
+        items_summary = ', '.join([f"{item.description or (item.product.name if item.product else item.service_type.name)} ({item.quantity})" 
+                                 for item in invoice.items])
+        
+        ws.cell(row=row_num, column=1, value=invoice.invoice_number)
+        ws.cell(row=row_num, column=2, value=invoice.customer.name)
+        ws.cell(row=row_num, column=3, value=invoice.customer.phone)
+        ws.cell(row=row_num, column=4, value=invoice.total_amount)
+        ws.cell(row=row_num, column=5, value=invoice.payment_method.title())
+        ws.cell(row=row_num, column=6, value=invoice.created_at.strftime('%d/%m/%Y'))
+        ws.cell(row=row_num, column=7, value=invoice.created_at.strftime('%H:%M'))
+        ws.cell(row=row_num, column=8, value=items_summary)
+        
+        # Format currency
+        ws.cell(row=row_num, column=4).number_format = 'L #,##0.00'
+        
+        total_sales += invoice.total_amount
+        row_num += 1
+    
+    # Summary row
+    if invoices:
+        row_num += 1
+        ws.merge_cells(f'A{row_num}:C{row_num}')
+        summary_cell = ws.cell(row=row_num, column=1, value="TOTAL DEL DÍA:")
+        summary_cell.font = Font(bold=True)
+        summary_cell.alignment = Alignment(horizontal="right")
+        
+        total_cell = ws.cell(row=row_num, column=4, value=total_sales)
+        total_cell.font = Font(bold=True)
+        total_cell.number_format = 'L #,##0.00'
+        total_cell.fill = PatternFill(start_color="FFE699", end_color="FFE699", fill_type="solid")
+    
+    # Adjust column widths
+    column_widths = [15, 25, 15, 12, 12, 12, 8, 40]
+    for col, width in enumerate(column_widths, 1):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = width
+    
+    # Save to BytesIO
+    excel_file = io.BytesIO()
+    wb.save(excel_file)
+    excel_file.seek(0)
+    
+    filename = f"facturas_carwash_{export_date.strftime('%Y%m%d')}.xlsx"
+    
+    return send_file(
+        excel_file,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=filename
+    )
 
 @app.context_processor
 def utility_processor():

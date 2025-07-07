@@ -160,6 +160,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form action="{{ url_for('add_customer') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-header">
                     <h5 class="modal-title">Agregar Cliente</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -171,7 +172,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Teléfono *</label>
-                        <input type="tel" class="form-control" name="phone" required placeholder="9464-8987">
+                        <input type="tel" class="form-control" name="phone" required placeholder="97164446">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Email</label>
