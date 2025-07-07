@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Caja - Factura {{ invoice.invoice_number }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-cash-register"></i> Caja - Factura {{ invoice.invoice_number }}
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Invoice Summary -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-file-invoice"></i> Resumen</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Cliente:</strong> {{ invoice.customer.name }}</p>
+                    <p><strong>Teléfono:</strong> {{ invoice.customer.phone }}</p>
+                    <hr>
+                    {% for item in invoice.items %}
+                    <div class="d-flex justify-content-between">
+                        <span>{{ item.description }} x{{ item.quantity }}</span>
+                        <span>{{ format_lempiras(item.total_price) }}</span>
+                    </div>
+                    {% endfor %}
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>TOTAL A PAGAR:</strong>
+                        <strong class="text-success fs-4">{{ format_lempiras(invoice.total_amount) }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simple Cash Payment -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-money-bill-wave"></i> Pago en Efectivo</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('process_cash_payment', invoice_id=invoice.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="row">
+                            <!-- Billetes principales -->
+                            <div class="col-md-6">
+                                <h6>Billetes</h6>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label">L1000</label>
+                                        <input type="number" class="form-control cash-input" name="bills_1000" value="0" min="0" data-value="1000">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L500</label>
+                                        <input type="number" class="form-control cash-input" name="bills_500" value="0" min="0" data-value="500">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L200</label>
+                                        <input type="number" class="form-control cash-input" name="bills_200" value="0" min="0" data-value="200">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L100</label>
+                                        <input type="number" class="form-control cash-input" name="bills_100" value="0" min="0" data-value="100">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L50</label>
+                                        <input type="number" class="form-control cash-input" name="bills_50" value="0" min="0" data-value="50">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L20</label>
+                                        <input type="number" class="form-control cash-input" name="bills_20" value="0" min="0" data-value="20">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Billetes menores y monedas -->
+                            <div class="col-md-6">
+                                <h6>Billetes Menores y Monedas</h6>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label">L10</label>
+                                        <input type="number" class="form-control cash-input" name="bills_10" value="0" min="0" data-value="10">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L5</label>
+                                        <input type="number" class="form-control cash-input" name="bills_5" value="0" min="0" data-value="5">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L2</label>
+                                        <input type="number" class="form-control cash-input" name="bills_2" value="0" min="0" data-value="2">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L1</label>
+                                        <input type="number" class="form-control cash-input" name="bills_1" value="0" min="0" data-value="1">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">50c</label>
+                                        <input type="number" class="form-control cash-input" name="coins_50c" value="0" min="0" data-value="0.50">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">20c</label>
+                                        <input type="number" class="form-control cash-input" name="coins_20c" value="0" min="0" data-value="0.20">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Totales automáticos -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center bg-light p-3 rounded">
+                                    <h6>Total Recibido</h6>
+                                    <div class="h4 text-primary" id="totalReceived">L 0.00</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center bg-light p-3 rounded">
+                                    <h6>Total a Pagar</h6>
+                                    <div class="h4 text-dark">{{ format_lempiras(invoice.total_amount) }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center bg-light p-3 rounded">
+                                    <h6>Cambio</h6>
+                                    <div class="h4" id="changeAmount">L 0.00</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Botones de acción -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-warning w-100" onclick="calculateExact()">
+                                    <i class="fas fa-calculator"></i> Calcular Exacto
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-success w-100" id="completeBtn" disabled>
+                                    <i class="fas fa-check"></i> Completar Pago
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const invoiceTotal = {{ invoice.total_amount }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar listeners a todos los inputs
+    document.querySelectorAll('.cash-input').forEach(input => {
+        input.addEventListener('input', calculateTotals);
+    });
+    
+    calculateTotals();
+});
+
+function calculateTotals() {
+    let total = 0;
+    
+    // Calcular total recibido
+    document.querySelectorAll('.cash-input').forEach(input => {
+        const quantity = parseInt(input.value) || 0;
+        const value = parseFloat(input.dataset.value) || 0;
+        total += quantity * value;
+    });
+    
+    // Actualizar displays
+    document.getElementById('totalReceived').textContent = `L ${total.toFixed(2)}`;
+    
+    const change = total - invoiceTotal;
+    const changeElement = document.getElementById('changeAmount');
+    changeElement.textContent = `L ${change.toFixed(2)}`;
+    
+    // Cambiar color del cambio
+    if (change >= 0) {
+        changeElement.className = 'h4 text-success';
+    } else {
+        changeElement.className = 'h4 text-danger';
+    }
+    
+    // Habilitar/deshabilitar botón
+    const completeBtn = document.getElementById('completeBtn');
+    completeBtn.disabled = change < 0;
+    
+    if (change >= 0) {
+        completeBtn.className = 'btn btn-success w-100';
+    } else {
+        completeBtn.className = 'btn btn-secondary w-100';
+    }
+}
+
+function calculateExact() {
+    // Limpiar todos los campos
+    document.querySelectorAll('.cash-input').forEach(input => {
+        input.value = '0';
+    });
+    
+    let remaining = invoiceTotal;
+    
+    // Denominaciones en orden descendente
+    const denominations = [
+        {input: 'bills_1000', value: 1000},
+        {input: 'bills_500', value: 500},
+        {input: 'bills_200', value: 200},
+        {input: 'bills_100', value: 100},
+        {input: 'bills_50', value: 50},
+        {input: 'bills_20', value: 20},
+        {input: 'bills_10', value: 10},
+        {input: 'bills_5', value: 5},
+        {input: 'bills_2', value: 2},
+        {input: 'bills_1', value: 1},
+        {input: 'coins_50c', value: 0.50},
+        {input: 'coins_20c', value: 0.20}
+    ];
+    
+    // Calcular denominaciones necesarias
+    for (let denom of denominations) {
+        if (remaining >= denom.value) {
+            const quantity = Math.floor(remaining / denom.value);
+            document.querySelector(`[name="${denom.input}"]`).value = quantity;
+            remaining = Math.round((remaining - (quantity * denom.value)) * 100) / 100;
+        }
+    }
+    
+    calculateTotals();
+}
+</script>
+{% endblock %}

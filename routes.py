@@ -282,45 +282,45 @@ def create_invoice():
 def cash_register(invoice_id):
     """Cash register for invoice payment"""
     invoice = Invoice.query.get_or_404(invoice_id)
-    return render_template('cash_register.html', invoice=invoice, format_lempiras=format_lempiras)
+    return render_template('simple_cash_register.html', invoice=invoice)
 
 @app.route('/process_cash_payment/<int:invoice_id>', methods=['POST'])
 def process_cash_payment(invoice_id):
     """Process cash payment with denominations"""
     invoice = Invoice.query.get_or_404(invoice_id)
-    form = CashRegisterForm()
     
-    if form.validate_on_submit():
-        # Calculate total from denominations
+    try:
+        # Get cash data directly from form
         cash_data = {
-            'bills_1000': form.bills_1000.data,
-            'bills_500': form.bills_500.data,
-            'bills_200': form.bills_200.data,
-            'bills_100': form.bills_100.data,
-            'bills_50': form.bills_50.data,
-            'bills_20': form.bills_20.data,
-            'bills_10': form.bills_10.data,
-            'bills_5': form.bills_5.data,
-            'bills_2': form.bills_2.data,
-            'bills_1': form.bills_1.data,
-            'coins_50c': form.coins_50c.data,
-            'coins_20c': form.coins_20c.data,
-            'coins_10c': form.coins_10c.data,
-            'coins_5c': form.coins_5c.data,
+            'bills_1000': int(request.form.get('bills_1000', 0)),
+            'bills_500': int(request.form.get('bills_500', 0)),
+            'bills_200': int(request.form.get('bills_200', 0)),
+            'bills_100': int(request.form.get('bills_100', 0)),
+            'bills_50': int(request.form.get('bills_50', 0)),
+            'bills_20': int(request.form.get('bills_20', 0)),
+            'bills_10': int(request.form.get('bills_10', 0)),
+            'bills_5': int(request.form.get('bills_5', 0)),
+            'bills_2': int(request.form.get('bills_2', 0)),
+            'bills_1': int(request.form.get('bills_1', 0)),
+            'coins_50c': int(request.form.get('coins_50c', 0)),
+            'coins_20c': int(request.form.get('coins_20c', 0)),
+            'coins_10c': int(request.form.get('coins_10c', 0)),
+            'coins_5c': int(request.form.get('coins_5c', 0)),
         }
         
         total_received = calculate_cash_total(cash_data)
         
         if total_received < invoice.total_amount:
             flash(f'Cantidad insuficiente. Se requieren {format_lempiras(invoice.total_amount)}', 'error')
-            return render_template('cash_register.html', invoice=invoice, form=form, format_lempiras=format_lempiras)
+            return render_template('simple_cash_register.html', invoice=invoice)
         
         # Record cash register entry
         cash_entry = CashRegisterEntry(
             invoice_id=invoice.id,
-            total_amount=total_received,
-            **cash_data
+            **cash_data,
+            total_amount=total_received
         )
+        
         db.session.add(cash_entry)
         
         # Update customer CRM
@@ -335,8 +335,13 @@ def process_cash_payment(invoice_id):
             flash('Pago procesado exitosamente', 'success')
         
         return redirect(url_for('print_invoice', invoice_id=invoice.id))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al procesar pago: {str(e)}', 'error')
+        return render_template('simple_cash_register.html', invoice=invoice)
     
-    return render_template('cash_register.html', invoice=invoice, form=form, format_lempiras=format_lempiras)
+
 
 @app.route('/cash_closing')
 def cash_closing():
