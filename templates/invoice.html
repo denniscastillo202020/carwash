@@ -280,11 +280,11 @@ function updateTotal() {
 function updateSummary() {
     const selectedItemsDiv = document.getElementById('selectedItems');
     const totalAmountSpan = document.getElementById('totalAmount');
-    const createBtn = document.getElementById('createInvoiceBtn');
+    const previewBtn = document.getElementById('previewBtn');
     
     if (selectedItems.length === 0) {
         selectedItemsDiv.innerHTML = '<p class="text-muted">No hay items seleccionados</p>';
-        createBtn.disabled = true;
+        if (previewBtn) previewBtn.disabled = true;
     } else {
         let html = '<ul class="list-unstyled">';
         selectedItems.forEach(item => {
@@ -297,7 +297,7 @@ function updateSummary() {
         });
         html += '</ul>';
         selectedItemsDiv.innerHTML = html;
-        createBtn.disabled = false;
+        if (previewBtn) previewBtn.disabled = false;
     }
     
     totalAmountSpan.textContent = `L ${totalAmount.toFixed(2)}`;
@@ -328,20 +328,91 @@ function previewInvoice() {
         return;
     }
     
-    const formData = new FormData(document.getElementById('invoiceForm'));
+    const customerName = document.getElementById('customerName').value;
+    const customerPhone = document.getElementById('customerPhone').value;
+    const paymentMethod = document.querySelector('select[name="payment_method"]').value;
+    
+    if (!customerName || !customerPhone) {
+        alert('Complete la información del cliente antes de previsualizar');
+        return;
+    }
+    
+    // Generate preview content
+    generateInvoicePreview(customerName, customerPhone, paymentMethod);
     
     // Show preview modal
     const modal = new bootstrap.Modal(document.getElementById('invoicePreviewModal'));
     modal.show();
-    
-    // Generate preview content
-    generateInvoicePreview(formData);
 }
 
-function generateInvoicePreview(formData) {
-    const customerName = formData.get('customer_name');
-    const customerPhone = formData.get('customer_phone');
-    const paymentMethod = formData.get('payment_method');
+function generateInvoicePreview(customerName, customerPhone, paymentMethod) {
+    const previewContent = document.getElementById('invoicePreviewContent');
+    
+    let itemsHtml = '';
+    selectedItems.forEach(item => {
+        itemsHtml += `
+            <tr>
+                <td>${item.name}</td>
+                <td>${item.quantity}</td>
+                <td>L ${item.price.toFixed(2)}</td>
+                <td>L ${item.total.toFixed(2)}</td>
+            </tr>
+        `;
+    });
+    
+    previewContent.innerHTML = `
+        <div class="invoice-preview">
+            <div class="text-center mb-3">
+                <h4>Car Wash Peña Blanca</h4>
+                <p class="text-muted">Teléfono: 97164446</p>
+                <p class="text-muted">Peña Blanca, Cortés</p>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Cliente:</strong><br>
+                    ${customerName}<br>
+                    ${customerPhone}
+                </div>
+                <div class="col-md-6 text-end">
+                    <strong>Fecha:</strong><br>
+                    ${new Date().toLocaleDateString('es-HN')}<br>
+                    <strong>Método de Pago:</strong><br>
+                    ${paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)}
+                </div>
+            </div>
+            
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Servicio/Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHtml}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>TOTAL:</strong></td>
+                        <td><strong>L ${totalAmount.toFixed(2)}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    `;
+}
+
+function proceedWithInvoice() {
+    // Close preview modal
+    const previewModal = bootstrap.Modal.getInstance(document.getElementById('invoicePreviewModal'));
+    previewModal.hide();
+    
+    // Submit the form
+    document.getElementById('invoiceForm').submit();
+}get('payment_method');
     
     let previewContent = `
         <div class="invoice-preview">

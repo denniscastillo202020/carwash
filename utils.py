@@ -6,13 +6,10 @@ from app import db
 from sqlalchemy import func
 
 def generate_invoice_number():
-    """Generate a unique invoice number"""
-    today = datetime.now()
-    prefix = f"CW{today.strftime('%Y%m%d')}"
-    
-    # Get the last invoice number for today
+    """Generate a unique invoice number with format CW-0000"""
+    # Get the last invoice number
     last_invoice = Invoice.query.filter(
-        Invoice.invoice_number.like(f"{prefix}%")
+        Invoice.invoice_number.like("CW-%")
     ).order_by(Invoice.id.desc()).first()
     
     if last_invoice:
@@ -22,7 +19,7 @@ def generate_invoice_number():
     else:
         new_seq = 1
     
-    return f"{prefix}-{new_seq:04d}"
+    return f"CW-{new_seq:04d}"
 
 def format_lempiras(amount):
     """Format amount in Lempiras currency"""
