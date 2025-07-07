@@ -118,6 +118,9 @@ Car Wash Peña Blanca is a comprehensive Point of Sale (POS) and Customer Relati
 - July 07, 2025: Enhanced dashboard with comprehensive metrics and Excel export
 - July 07, 2025: Invoice preview functionality with cash payment denominations tracking
 - July 07, 2025: Excel export feature for daily invoice backup implemented
+- July 07, 2025: Successfully migrated from Replit Agent to standard environment
+- July 07, 2025: Fixed CSRF token errors causing internal server errors
+- July 07, 2025: Added PostgreSQL database for production deployment
 
 ## User Preferences
 
