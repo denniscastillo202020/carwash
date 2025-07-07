@@ -486,6 +486,358 @@ def perform_cash_closing_route():
     
     return redirect(url_for('cash_closing'))
 
+@app.route('/analytics')
+def analytics():
+    """Analytics dashboard"""
+    return render_template('analytics.html')
+
+@app.route('/api/analytics', methods=['POST'])
+def api_analytics():
+    """API endpoint for analytics data"""
+    try:
+        period = request.form.get('period', 'week')
+        date_from = request.form.get('date_from')
+        date_to = request.form.get('date_to')
+        
+        # Calculate date range based on period
+        today = datetime.now().date()
+        if period == 'today':
+            start_date = today
+            end_date = today
+        elif period == 'week':
+            start_date = today - timedelta(days=today.weekday())
+            end_date = start_date + timedelta(days=6)
+        elif period == 'month':
+            start_date = today.replace(day=1)
+            next_month = start_date.replace(month=start_date.month + 1) if start_date.month < 12 else start_date.replace(year=start_date.year + 1, month=1)
+            end_date = next_month - timedelta(days=1)
+        elif period == 'quarter':
+            quarter = (today.month - 1) // 3 + 1
+            start_date = datetime(today.year, (quarter - 1) * 3 + 1, 1).date()
+            if quarter < 4:
+                end_date = datetime(today.year, quarter * 3, 1).date()
+                end_date = end_date.replace(month=end_date.month + 1) - timedelta(days=1)
+            else:
+                end_date = datetime(today.year, 12, 31).date()
+        elif period == 'year':
+            start_date = today.replace(month=1, day=1)
+            end_date = today.replace(month=12, day=31)
+        elif period == 'custom' and date_from and date_to:
+            start_date = datetime.strptime(date_from, '%Y-%m-%d').date()
+            end_date = datetime.strptime(date_to, '%Y-%m-%d').date()
+        else:
+            start_date = today - timedelta(days=7)
+            end_date = today
+        
+        # Convert to datetime for queries
+        start_datetime = datetime.combine(start_date, datetime.min.time())
+        end_datetime = datetime.combine(end_date, datetime.max.time())
+        
+        # Get invoices for the period
+        invoices = Invoice.query.filter(
+            Invoice.created_at.between(start_datetime, end_datetime)
+        ).all()
+        
+        # Calculate KPIs
+        total_sales = sum(inv.total_amount for inv in invoices)
+        total_invoices = len(invoices)
+        unique_customers = len(set(inv.customer_id for inv in invoices))
+        avg_ticket = total_sales / total_invoices if total_invoices > 0 else 0
+        
+        # Calculate previous period for growth
+        period_days = (end_date - start_date).days + 1
+        prev_start = start_date - timedelta(days=period_days)
+        prev_end = start_date - timedelta(days=1)
+        prev_start_datetime = datetime.combine(prev_start, datetime.min.time())
+        prev_end_datetime = datetime.combine(prev_end, datetime.max.time())
+        
+        prev_invoices = Invoice.query.filter(
+            Invoice.created_at.between(prev_start_datetime, prev_end_datetime)
+        ).all()
+        
+        prev_sales = sum(inv.total_amount for inv in prev_invoices)
+        prev_invoices_count = len(prev_invoices)
+        prev_customers = len(set(inv.customer_id for inv in prev_invoices))
+        prev_avg_ticket = prev_sales / prev_invoices_count if prev_invoices_count > 0 else 0
+        
+        # Calculate growth percentages
+        sales_growth = ((total_sales - prev_sales) / prev_sales * 100) if prev_sales > 0 else 0
+        invoices_growth = ((total_invoices - prev_invoices_count) / prev_invoices_count * 100) if prev_invoices_count > 0 else 0
+        customers_growth = ((unique_customers - prev_customers) / prev_customers * 100) if prev_customers > 0 else 0
+        ticket_growth = ((avg_ticket - prev_avg_ticket) / prev_avg_ticket * 100) if prev_avg_ticket > 0 else 0
+        
+        # Sales trend data
+        sales_trend_labels = []
+        sales_trend_data = []
+        current_date = start_date
+        while current_date <= end_date:
+            day_start = datetime.combine(current_date, datetime.min.time())
+            day_end = datetime.combine(current_date, datetime.max.time())
+            day_sales = sum(inv.total_amount for inv in invoices 
+                          if day_start <= inv.created_at <= day_end)
+            sales_trend_labels.append(current_date.strftime('%d/%m'))
+            sales_trend_data.append(float(day_sales))
+            current_date += timedelta(days=1)
+        
+        # Payment methods
+        cash_sales = sum(inv.total_amount for inv in invoices if inv.payment_method == 'efectivo')
+        card_sales = sum(inv.total_amount for inv in invoices if inv.payment_method == 'tarjeta')
+        transfer_sales = sum(inv.total_amount for inv in invoices if inv.payment_method == 'transferencia')
+        
+        # Top services and products
+        from collections import defaultdict
+        service_counts = defaultdict(int)
+        product_counts = defaultdict(int)
+        
+        for invoice in invoices:
+            for item in invoice.items:
+                if item.service_type:
+                    service_counts[item.service_type.name] += item.quantity
+                if item.product:
+                    product_counts[item.product.name] += item.quantity
+        
+        top_services = sorted(service_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        top_products = sorted(product_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        
+        # Hourly analysis
+        hourly_sales = [0] * 13  # 6AM to 6PM
+        for invoice in invoices:
+            hour = invoice.created_at.hour
+            if 6 <= hour <= 18:
+                hourly_sales[hour - 6] += invoice.total_amount
+        
+        # Weekly analysis
+        weekly_sales = [0] * 7  # Monday to Sunday
+        for invoice in invoices:
+            weekday = invoice.created_at.weekday()
+            weekly_sales[weekday] += invoice.total_amount
+        
+        # Top customers
+        from collections import defaultdict
+        customer_stats = defaultdict(lambda: {'total': 0, 'count': 0, 'last_visit': None})
+        for invoice in invoices:
+            customer_stats[invoice.customer_id]['total'] += invoice.total_amount
+            customer_stats[invoice.customer_id]['count'] += 1
+            if not customer_stats[invoice.customer_id]['last_visit'] or invoice.created_at > customer_stats[invoice.customer_id]['last_visit']:
+                customer_stats[invoice.customer_id]['last_visit'] = invoice.created_at
+        
+        top_customers = []
+        for customer_id, stats in customer_stats.items():
+            customer = Customer.query.get(customer_id)
+            if customer:
+                top_customers.append({
+                    'name': customer.name,
+                    'phone': customer.phone,
+                    'total_spent': stats['total'],
+                    'invoice_count': stats['count'],
+                    'avg_ticket': stats['total'] / stats['count'],
+                    'last_visit': stats['last_visit'].strftime('%d/%m/%Y')
+                })
+        
+        top_customers.sort(key=lambda x: x['total_spent'], reverse=True)
+        top_customers = top_customers[:10]
+        
+        return jsonify({
+            'kpis': {
+                'total_sales': round(total_sales, 2),
+                'total_invoices': total_invoices,
+                'unique_customers': unique_customers,
+                'avg_ticket': round(avg_ticket, 2),
+                'sales_growth': round(sales_growth, 1),
+                'invoices_growth': round(invoices_growth, 1),
+                'customers_growth': round(customers_growth, 1),
+                'ticket_growth': round(ticket_growth, 1)
+            },
+            'charts': {
+                'sales_trend': {
+                    'labels': sales_trend_labels,
+                    'data': sales_trend_data
+                },
+                'payment_methods': {
+                    'data': [float(cash_sales), float(card_sales), float(transfer_sales)]
+                },
+                'top_services': {
+                    'labels': [item[0] for item in top_services],
+                    'data': [item[1] for item in top_services]
+                },
+                'top_products': {
+                    'labels': [item[0] for item in top_products],
+                    'data': [item[1] for item in top_products]
+                },
+                'hourly': {
+                    'data': [float(x) for x in hourly_sales]
+                },
+                'weekly': {
+                    'data': [float(x) for x in weekly_sales]
+                }
+            },
+            'top_customers': top_customers
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/export_cash_closings')
+def export_cash_closings():
+    """Export all cash closings to Excel"""
+    try:
+        import xlsxwriter
+        from io import BytesIO
+        
+        # Create a workbook and add a worksheet
+        output = BytesIO()
+        workbook = xlsxwriter.Workbook(output)
+        worksheet = workbook.add_worksheet('Arqueos de Caja')
+        
+        # Define formats
+        header_format = workbook.add_format({
+            'bold': True,
+            'bg_color': '#D7E4BC',
+            'border': 1
+        })
+        
+        money_format = workbook.add_format({
+            'num_format': 'L#,##0.00',
+            'border': 1
+        })
+        
+        date_format = workbook.add_format({
+            'num_format': 'dd/mm/yyyy',
+            'border': 1
+        })
+        
+        cell_format = workbook.add_format({'border': 1})
+        
+        # Headers
+        headers = [
+            'Fecha', 'Ventas Esperadas', 'Efectivo Contado', 'Diferencia',
+            'L500', 'L200', 'L100', 'L50', 'L20', 'L10', 'L5', 'L2', 'L1',
+            'Notas', 'Fecha Creación'
+        ]
+        
+        for col, header in enumerate(headers):
+            worksheet.write(0, col, header, header_format)
+        
+        # Get all cash closings
+        closings = CashClosing.query.order_by(CashClosing.closing_date.desc()).all()
+        
+        # Write data
+        for row, closing in enumerate(closings, 1):
+            worksheet.write(row, 0, closing.closing_date, date_format)
+            worksheet.write(row, 1, closing.expected_amount, money_format)
+            worksheet.write(row, 2, closing.actual_amount, money_format)
+            worksheet.write(row, 3, closing.difference, money_format)
+            worksheet.write(row, 4, closing.total_bills_500 or 0, cell_format)
+            worksheet.write(row, 5, closing.total_bills_200 or 0, cell_format)
+            worksheet.write(row, 6, closing.total_bills_100 or 0, cell_format)
+            worksheet.write(row, 7, closing.total_bills_50 or 0, cell_format)
+            worksheet.write(row, 8, closing.total_bills_20 or 0, cell_format)
+            worksheet.write(row, 9, closing.total_bills_10 or 0, cell_format)
+            worksheet.write(row, 10, closing.total_bills_5 or 0, cell_format)
+            worksheet.write(row, 11, closing.total_bills_2 or 0, cell_format)
+            worksheet.write(row, 12, closing.total_bills_1 or 0, cell_format)
+            worksheet.write(row, 13, closing.notes or '', cell_format)
+            worksheet.write(row, 14, closing.created_at, date_format)
+        
+        # Adjust column widths
+        worksheet.set_column('A:A', 12)
+        worksheet.set_column('B:D', 15)
+        worksheet.set_column('E:M', 8)
+        worksheet.set_column('N:N', 20)
+        worksheet.set_column('O:O', 15)
+        
+        workbook.close()
+        output.seek(0)
+        
+        filename = f'Arqueos_Caja_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+        
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=filename
+        )
+        
+    except Exception as e:
+        flash(f'Error al exportar arqueos: {str(e)}', 'error')
+        return redirect(url_for('cash_closing'))
+
+@app.route('/export_analytics')
+def export_analytics():
+    """Export analytics report to Excel"""
+    try:
+        import xlsxwriter
+        from io import BytesIO
+        
+        output = BytesIO()
+        workbook = xlsxwriter.Workbook(output)
+        
+        # Create sheets
+        summary_sheet = workbook.add_worksheet('Resumen')
+        daily_sheet = workbook.add_worksheet('Ventas Diarias')
+        customers_sheet = workbook.add_worksheet('Top Clientes')
+        
+        # Formats
+        header_format = workbook.add_format({
+            'bold': True,
+            'bg_color': '#4472C4',
+            'font_color': 'white',
+            'border': 1
+        })
+        
+        money_format = workbook.add_format({
+            'num_format': 'L#,##0.00',
+            'border': 1
+        })
+        
+        # Get current month data
+        today = datetime.now().date()
+        start_date = today.replace(day=1)
+        end_date = today
+        start_datetime = datetime.combine(start_date, datetime.min.time())
+        end_datetime = datetime.combine(end_date, datetime.max.time())
+        
+        invoices = Invoice.query.filter(
+            Invoice.created_at.between(start_datetime, end_datetime)
+        ).all()
+        
+        # Summary sheet
+        summary_sheet.write('A1', 'REPORTE DE ANÁLISIS - CAR WASH PEÑA BLANCA', header_format)
+        summary_sheet.merge_range('A1:D1', 'REPORTE DE ANÁLISIS - CAR WASH PEÑA BLANCA', header_format)
+        
+        summary_data = [
+            ['Período', f'{start_date.strftime("%d/%m/%Y")} - {end_date.strftime("%d/%m/%Y")}'],
+            ['Total Ventas', sum(inv.total_amount for inv in invoices)],
+            ['Total Facturas', len(invoices)],
+            ['Clientes Únicos', len(set(inv.customer_id for inv in invoices))],
+            ['Ticket Promedio', sum(inv.total_amount for inv in invoices) / len(invoices) if invoices else 0],
+            ['Ventas Efectivo', sum(inv.total_amount for inv in invoices if inv.payment_method == 'efectivo')],
+            ['Ventas Tarjeta', sum(inv.total_amount for inv in invoices if inv.payment_method == 'tarjeta')]
+        ]
+        
+        for row, (label, value) in enumerate(summary_data, 3):
+            summary_sheet.write(row, 0, label, header_format)
+            if isinstance(value, (int, float)) and 'Ventas' in label or 'Promedio' in label:
+                summary_sheet.write(row, 1, value, money_format)
+            else:
+                summary_sheet.write(row, 1, value)
+        
+        workbook.close()
+        output.seek(0)
+        
+        filename = f'Reporte_Analytics_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+        
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=filename
+        )
+        
+    except Exception as e:
+        flash(f'Error al exportar reporte: {str(e)}', 'error')
+        return redirect(url_for('analytics'))
+
 @app.route('/appointments')
 def appointments():
     """Appointment management"""

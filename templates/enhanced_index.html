@@ -4,11 +4,16 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-12">
-        <h1 class="mb-4">
-            <i class="fas fa-tachometer-alt"></i> Dashboard - Car Wash Peña Blanca
-            <small class="text-muted d-block">Peña Blanca, Cortés | Tel: 97164446</small>
-        </h1>
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="mb-2">
+                <i class="fas fa-tachometer-alt"></i> Dashboard - Car Wash Peña Blanca
+            </h1>
+            <small class="text-muted">Peña Blanca, Cortés | Tel: 97164446</small>
+        </div>
+        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#backgroundModal">
+            <i class="fas fa-palette"></i> Personalizar
+        </button>
     </div>
 </div>
 
@@ -231,6 +236,10 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Include dashboard settings modal -->
+{% include 'dashboard_settings.html' %}
+
 {% endblock %}
 
 {% block scripts %}

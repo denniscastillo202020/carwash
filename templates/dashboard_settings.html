@@ -1,0 +1,131 @@
+<!-- Modal para personalizar fondo -->
+<div class="modal fade" id="backgroundModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Personalizar Fondo del Dashboard</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <h6>Fondos Predefinidos</h6>
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <div class="card bg-primary text-white text-center p-3" style="cursor: pointer;" onclick="setBackground('gradient1')">
+                                    <small>Azul Degradado</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="card bg-success text-white text-center p-3" style="cursor: pointer;" onclick="setBackground('gradient2')">
+                                    <small>Verde Degradado</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="card bg-info text-white text-center p-3" style="cursor: pointer;" onclick="setBackground('gradient3')">
+                                    <small>Turquesa Degradado</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="card bg-warning text-dark text-center p-3" style="cursor: pointer;" onclick="setBackground('car1')">
+                                    <small>Autos Clásicos</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="card bg-dark text-white text-center p-3" style="cursor: pointer;" onclick="setBackground('car2')">
+                                    <small>Auto Deportivo</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="card bg-light text-dark text-center p-3" style="cursor: pointer;" onclick="setBackground('default')">
+                                    <small>Por Defecto</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <h6>URL de Imagen Personalizada</h6>
+                        <input type="url" class="form-control" id="customBackgroundUrl" placeholder="https://ejemplo.com/imagen.jpg">
+                        <button type="button" class="btn btn-primary mt-2" onclick="setCustomBackground()">
+                            Aplicar Imagen
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-danger" onclick="resetBackground()">Restablecer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function setBackground(type) {
+    const body = document.body;
+    
+    // Remove existing background classes
+    body.className = body.className.replace(/bg-\w+/g, '');
+    body.style.backgroundImage = '';
+    
+    switch(type) {
+        case 'gradient1':
+            body.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            break;
+        case 'gradient2':
+            body.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+            break;
+        case 'gradient3':
+            body.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+            break;
+        case 'car1':
+            body.style.background = 'url("https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80") center/cover fixed';
+            break;
+        case 'car2':
+            body.style.background = 'url("https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80") center/cover fixed';
+            break;
+        default:
+            body.style.background = '';
+            break;
+    }
+    
+    // Save preference
+    localStorage.setItem('dashboardBackground', type);
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('backgroundModal'));
+    if (modal) modal.hide();
+}
+
+function setCustomBackground() {
+    const url = document.getElementById('customBackgroundUrl').value;
+    if (url) {
+        document.body.style.background = `url("${url}") center/cover fixed`;
+        localStorage.setItem('dashboardBackground', `custom:${url}`);
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('backgroundModal'));
+        if (modal) modal.hide();
+    }
+}
+
+function resetBackground() {
+    document.body.style.background = '';
+    localStorage.removeItem('dashboardBackground');
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('backgroundModal'));
+    if (modal) modal.hide();
+}
+
+// Load saved background on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const savedBackground = localStorage.getItem('dashboardBackground');
+    if (savedBackground) {
+        if (savedBackground.startsWith('custom:')) {
+            const url = savedBackground.replace('custom:', '');
+            document.body.style.background = `url("${url}") center/cover fixed`;
+        } else {
+            setBackground(savedBackground);
+        }
+    }
+});
+</script>

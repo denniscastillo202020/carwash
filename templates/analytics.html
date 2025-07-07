@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+
+{% block title %}Análisis y Reportes - Car Wash Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-chart-bar"></i> Análisis y Reportes
+            </h1>
+        </div>
+    </div>
+
+    <!-- Filtros de fecha -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form id="analyticsForm" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Período</label>
+                            <select class="form-select" id="period" name="period">
+                                <option value="today">Hoy</option>
+                                <option value="week" selected>Esta Semana</option>
+                                <option value="month">Este Mes</option>
+                                <option value="quarter">Trimestre</option>
+                                <option value="year">Este Año</option>
+                                <option value="custom">Personalizado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3" id="dateFromDiv" style="display: none;">
+                            <label class="form-label">Desde</label>
+                            <input type="date" class="form-control" id="dateFrom" name="date_from">
+                        </div>
+                        <div class="col-md-3" id="dateToDiv" style="display: none;">
+                            <label class="form-label">Hasta</label>
+                            <input type="date" class="form-control" id="dateTo" name="date_to">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-primary" onclick="updateAnalytics()">
+                                    <i class="fas fa-refresh"></i> Actualizar
+                                </button>
+                                <a href="{{ url_for('export_analytics') }}" class="btn btn-success">
+                                    <i class="fas fa-file-excel"></i> Excel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs principales -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Ventas Totales</h6>
+                            <h3 id="totalSales">{{ format_lempiras(0) }}</h3>
+                            <small id="salesGrowth">+0% vs período anterior</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-dollar-sign fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Facturas</h6>
+                            <h3 id="totalInvoices">0</h3>
+                            <small id="invoicesGrowth">+0% vs período anterior</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-receipt fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Ticket Promedio</h6>
+                            <h3 id="avgTicket">{{ format_lempiras(0) }}</h3>
+                            <small id="ticketGrowth">+0% vs período anterior</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calculator fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>Clientes Únicos</h6>
+                            <h3 id="uniqueCustomers">0</h3>
+                            <small id="customersGrowth">+0% vs período anterior</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos principales -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-line"></i> Tendencia de Ventas</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesTrendChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-pie"></i> Métodos de Pago</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="paymentMethodChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Análisis por categorías -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar"></i> Servicios Más Vendidos</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="servicesChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar"></i> Productos Más Vendidos</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="productsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Análisis temporal -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-clock"></i> Ventas por Hora del Día</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar"></i> Ventas por Día de la Semana</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de top clientes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-trophy"></i> Top 10 Clientes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="topCustomersTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Cliente</th>
+                                    <th>Teléfono</th>
+                                    <th>Total Gastado</th>
+                                    <th>Facturas</th>
+                                    <th>Ticket Promedio</th>
+                                    <th>Última Visita</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Datos cargados dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let salesTrendChart, paymentMethodChart, servicesChart, productsChart, hourlyChart, weeklyChart;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    updateAnalytics();
+    
+    // Auto-refresh every 5 minutes
+    setInterval(updateAnalytics, 300000);
+    
+    // Show/hide custom date inputs
+    document.getElementById('period').addEventListener('change', function() {
+        const customDivs = document.querySelectorAll('#dateFromDiv, #dateToDiv');
+        if (this.value === 'custom') {
+            customDivs.forEach(div => div.style.display = 'block');
+        } else {
+            customDivs.forEach(div => div.style.display = 'none');
+        }
+    });
+});
+
+function initializeCharts() {
+    // Sales Trend Chart
+    const salesCtx = document.getElementById('salesTrendChart').getContext('2d');
+    salesTrendChart = new Chart(salesCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Ventas (L)',
+                data: [],
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'L ' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Payment Method Chart
+    const paymentCtx = document.getElementById('paymentMethodChart').getContext('2d');
+    paymentMethodChart = new Chart(paymentCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Efectivo', 'Tarjeta', 'Transferencia'],
+            datasets: [{
+                data: [0, 0, 0],
+                backgroundColor: ['#28a745', '#007bff', '#ffc107']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Services Chart
+    const servicesCtx = document.getElementById('servicesChart').getContext('2d');
+    servicesChart = new Chart(servicesCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Cantidad',
+                data: [],
+                backgroundColor: '#17a2b8'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Products Chart
+    const productsCtx = document.getElementById('productsChart').getContext('2d');
+    productsChart = new Chart(productsCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Cantidad',
+                data: [],
+                backgroundColor: '#fd7e14'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Hourly Chart
+    const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+    hourlyChart = new Chart(hourlyCtx, {
+        type: 'bar',
+        data: {
+            labels: ['6AM', '7AM', '8AM', '9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM'],
+            datasets: [{
+                label: 'Ventas (L)',
+                data: [],
+                backgroundColor: '#6f42c1'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Weekly Chart
+    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+    weeklyChart = new Chart(weeklyCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+            datasets: [{
+                label: 'Ventas (L)',
+                data: [],
+                backgroundColor: '#e83e8c'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function updateAnalytics() {
+    const formData = new FormData(document.getElementById('analyticsForm'));
+    
+    fetch('/api/analytics', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        updateKPIs(data.kpis);
+        updateCharts(data.charts);
+        updateTopCustomers(data.top_customers);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error al cargar análisis', 'error');
+    });
+}
+
+function updateKPIs(kpis) {
+    document.getElementById('totalSales').textContent = `L ${kpis.total_sales.toLocaleString()}`;
+    document.getElementById('totalInvoices').textContent = kpis.total_invoices;
+    document.getElementById('avgTicket').textContent = `L ${kpis.avg_ticket.toLocaleString()}`;
+    document.getElementById('uniqueCustomers').textContent = kpis.unique_customers;
+    
+    // Update growth indicators
+    document.getElementById('salesGrowth').textContent = `${kpis.sales_growth > 0 ? '+' : ''}${kpis.sales_growth}% vs período anterior`;
+    document.getElementById('invoicesGrowth').textContent = `${kpis.invoices_growth > 0 ? '+' : ''}${kpis.invoices_growth}% vs período anterior`;
+    document.getElementById('ticketGrowth').textContent = `${kpis.ticket_growth > 0 ? '+' : ''}${kpis.ticket_growth}% vs período anterior`;
+    document.getElementById('customersGrowth').textContent = `${kpis.customers_growth > 0 ? '+' : ''}${kpis.customers_growth}% vs período anterior`;
+}
+
+function updateCharts(charts) {
+    // Update sales trend
+    salesTrendChart.data.labels = charts.sales_trend.labels;
+    salesTrendChart.data.datasets[0].data = charts.sales_trend.data;
+    salesTrendChart.update();
+
+    // Update payment methods
+    paymentMethodChart.data.datasets[0].data = charts.payment_methods.data;
+    paymentMethodChart.update();
+
+    // Update services
+    servicesChart.data.labels = charts.top_services.labels;
+    servicesChart.data.datasets[0].data = charts.top_services.data;
+    servicesChart.update();
+
+    // Update products
+    productsChart.data.labels = charts.top_products.labels;
+    productsChart.data.datasets[0].data = charts.top_products.data;
+    productsChart.update();
+
+    // Update hourly
+    hourlyChart.data.datasets[0].data = charts.hourly.data;
+    hourlyChart.update();
+
+    // Update weekly
+    weeklyChart.data.datasets[0].data = charts.weekly.data;
+    weeklyChart.update();
+}
+
+function updateTopCustomers(customers) {
+    const tbody = document.querySelector('#topCustomersTable tbody');
+    tbody.innerHTML = '';
+    
+    customers.forEach((customer, index) => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${customer.name}</td>
+            <td>${customer.phone}</td>
+            <td>L ${customer.total_spent.toLocaleString()}</td>
+            <td>${customer.invoice_count}</td>
+            <td>L ${customer.avg_ticket.toLocaleString()}</td>
+            <td>${customer.last_visit}</td>
+        `;
+    });
+}
+
+function showNotification(message, type = 'info') {
+    // Simple notification function
+    alert(message);
+}
+</script>
+{% endblock %}
