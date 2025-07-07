@@ -2,6 +2,7 @@ import os
 import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -17,6 +18,14 @@ db = SQLAlchemy(model_class=Base)
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "carwash_secret_key_2025")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+# Initialize CSRF protection
+csrf = CSRFProtect(app)
+
+# Make csrf_token available in templates
+@app.context_processor
+def inject_csrf_token():
+    return dict(csrf_token=csrf.generate_csrf)
 
 # Configure the database
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///carwash.db")
