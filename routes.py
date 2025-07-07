@@ -439,7 +439,7 @@ Tu cita ha sido confirmada:
 ¡Te esperamos en nuestro car wash!
 
 Ubicación: Peña Blanca, Cortés
-Teléfono: 9999-9999"""
+Teléfono: 9464-8987"""
         
         success, response = send_whatsapp_message(customer.phone, message)
         if success:
