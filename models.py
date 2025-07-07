@@ -69,7 +69,7 @@ class CashRegisterEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     invoice_id = db.Column(db.Integer, db.ForeignKey('invoice.id'), unique=True)
     # Denominations in Lempiras
-    bills_1000 = db.Column(db.Integer, default=0)
+
     bills_500 = db.Column(db.Integer, default=0)
     bills_200 = db.Column(db.Integer, default=0)
     bills_100 = db.Column(db.Integer, default=0)
@@ -101,12 +101,12 @@ class CashClosing(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     closing_date = db.Column(db.Date, nullable=False)
     opening_amount = db.Column(db.Float, default=0.0)
-    sales_amount = db.Column(db.Float, nullable=False)
+    sales_amount = db.Column(db.Float, default=0.0)
     expected_amount = db.Column(db.Float, nullable=False)
     actual_amount = db.Column(db.Float, nullable=False)
     difference = db.Column(db.Float, nullable=False)
     # Total bills and coins count
-    total_bills_1000 = db.Column(db.Integer, default=0)
+
     total_bills_500 = db.Column(db.Integer, default=0)
     total_bills_200 = db.Column(db.Integer, default=0)
     total_bills_100 = db.Column(db.Integer, default=0)

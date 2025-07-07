@@ -1,333 +1,87 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factura {{ invoice.invoice_number }}</title>
-    <style>
-        /* Thermal Printer Styles */
-        @page {
-            size: 80mm auto;
-            margin: 0;
-        }
-        
-        body {
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            line-height: 1.2;
-            margin: 0;
-            padding: 10px;
-            width: 72mm;
-            background: white;
-            color: black;
-        }
-        
-        .header {
-            text-align: center;
-            border-bottom: 1px dashed #000;
-            padding-bottom: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .logo {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .business-info {
-            font-size: 10px;
-            line-height: 1.1;
-        }
-        
-        .invoice-info {
-            margin: 10px 0;
-            border-bottom: 1px dashed #000;
-            padding-bottom: 10px;
-        }
-        
-        .customer-info {
-            margin: 10px 0;
-            border-bottom: 1px dashed #000;
-            padding-bottom: 10px;
-        }
-        
-        .items-table {
-            width: 100%;
-            margin: 10px 0;
-        }
-        
-        .items-table th,
-        .items-table td {
-            text-align: left;
-            padding: 2px 0;
-            font-size: 11px;
-        }
-        
-        .items-table th {
-            border-bottom: 1px solid #000;
-            font-weight: bold;
-        }
-        
-        .item-row {
-            border-bottom: 1px dotted #ccc;
-        }
-        
-        .totals {
-            margin-top: 10px;
-            border-top: 1px dashed #000;
-            padding-top: 5px;
-        }
-        
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 2px 0;
-        }
-        
-        .total-amount {
-            font-weight: bold;
-            font-size: 14px;
-            border-top: 1px solid #000;
-            padding-top: 5px;
-            margin-top: 5px;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 15px;
-            border-top: 1px dashed #000;
-            padding-top: 10px;
-            font-size: 10px;
-        }
-        
-        .thank-you {
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        
-        .separator {
-            text-align: center;
-            margin: 5px 0;
-            font-size: 10px;
-        }
-        
-        .qr-code {
-            text-align: center;
-            margin: 10px 0;
-            font-size: 10px;
-        }
-        
-        @media print {
-            body {
-                width: 72mm;
-            }
-            
-            .no-print {
-                display: none;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Print Controls (hidden when printing) -->
-    <div class="no-print" style="position: fixed; top: 10px; right: 10px; background: white; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
-        <button onclick="window.print()" style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
-            Imprimir
-        </button>
-        <button onclick="window.close()" style="background: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-left: 5px;">
-            Cerrar
-        </button>
-    </div>
+{% extends "base.html" %}
 
-    <!-- Invoice Header -->
-    <div class="header">
-        <div class="logo">CAR WASH PEÑA BLANCA</div>
-        <div class="business-info">
-            Peña Blanca, Cortés<br>
-            Tel: 9464-8987<br>
-            Honduras
+{% block title %}Factura {{ invoice.invoice_number }} - Car Wash Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid d-print-none">
+    <div class="row mb-3">
+        <div class="col-12">
+            <button onclick="window.print()" class="btn btn-primary btn-lg me-2">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+            <button onclick="window.location.href='{{ url_for('invoice') }}'" class="btn btn-secondary btn-lg">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
         </div>
     </div>
+</div>
 
-    <!-- Invoice Information -->
-    <div class="invoice-info">
-        <div><strong>FACTURA:</strong> {{ invoice.invoice_number }}</div>
-        <div><strong>FECHA:</strong> {{ invoice.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
-        <div><strong>CAJERO:</strong> Sistema</div>
+<!-- Factura térmica simplificada -->
+<div class="invoice-thermal" style="max-width: 280px; margin: 0 auto; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.2;">
+    <div class="text-center mb-2">
+        <h5 style="margin: 0; font-size: 14px; font-weight: bold;">CAR WASH PEÑA BLANCA</h5>
+        <small>Peña Blanca, Cortés</small><br>
+        <small>Tel: 97164446</small>
     </div>
-
-    <!-- Customer Information -->
-    <div class="customer-info">
-        <div><strong>CLIENTE:</strong></div>
-        <div>{{ invoice.customer.name }}</div>
-        <div>Tel: {{ invoice.customer.phone }}</div>
-        {% if invoice.customer.email %}
-        <div>{{ invoice.customer.email }}</div>
-        {% endif %}
-        {% if invoice.customer.address %}
-        <div>{{ invoice.customer.address }}</div>
-        {% endif %}
-        {% if invoice.customer.total_visits > 1 %}
-        <div><small>Cliente frecuente ({{ invoice.customer.total_visits }} visitas)</small></div>
-        {% endif %}
+    
+    <div style="border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 8px 0; margin: 8px 0;">
+        <div style="display: flex; justify-content: space-between;">
+            <span>Factura:</span>
+            <span><strong>{{ invoice.invoice_number }}</strong></span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+            <span>Fecha:</span>
+            <span>{{ invoice.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+            <span>Cliente:</span>
+            <span>{{ invoice.customer.name }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+            <span>Teléfono:</span>
+            <span>{{ invoice.customer.phone }}</span>
+        </div>
     </div>
-
-    <!-- Items Table -->
-    <table class="items-table">
-        <thead>
-            <tr>
-                <th style="width: 50%;">DESCRIPCION</th>
-                <th style="width: 15%; text-align: center;">CANT</th>
-                <th style="width: 17%; text-align: right;">PRECIO</th>
-                <th style="width: 18%; text-align: right;">TOTAL</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in invoice.items %}
-            <tr class="item-row">
-                <td>{{ item.description }}</td>
-                <td style="text-align: center;">{{ item.quantity }}</td>
-                <td style="text-align: right;">L{{ "%.2f"|format(item.unit_price) }}</td>
-                <td style="text-align: right;">L{{ "%.2f"|format(item.total_price) }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <!-- Totals -->
-    <div class="totals">
-        <div class="total-row">
-            <span>SUBTOTAL:</span>
-            <span>L{{ "%.2f"|format(invoice.total_amount) }}</span>
+    
+    <div style="margin: 8px 0;">
+        <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 2px;">
+            <span>Descripción</span>
+            <span>Total</span>
         </div>
-        {% if invoice.tax_amount > 0 %}
-        <div class="total-row">
-            <span>IMPUESTO:</span>
-            <span>L{{ "%.2f"|format(invoice.tax_amount) }}</span>
+        {% for item in invoice.items %}
+        <div style="display: flex; justify-content: space-between; padding: 2px 0;">
+            <span>{{ item.description }}</span>
+            <span>{{ format_lempiras(item.total_price) }}</span>
         </div>
-        {% endif %}
-        <div class="total-row total-amount">
-            <span>TOTAL:</span>
-            <span>L{{ "%.2f"|format(invoice.total_amount) }}</span>
-        </div>
-        <div class="total-row">
-            <span>PAGO ({{ invoice.payment_method|title }}):</span>
-            <span>L{{ "%.2f"|format(invoice.total_amount) }}</span>
-        </div>
-        {% if invoice.payment_method == 'efectivo' and invoice.cash_register_entry %}
-        <div class="total-row">
-            <span>RECIBIDO:</span>
-            <span>L{{ "%.2f"|format(invoice.cash_register_entry.total_amount) }}</span>
-        </div>
-        <div class="total-row">
-            <span>CAMBIO:</span>
-            <span>L{{ "%.2f"|format(invoice.cash_register_entry.total_amount - invoice.total_amount) }}</span>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Separator -->
-    <div class="separator">================================</div>
-
-    <!-- Payment Details (for cash payments) -->
-    {% if invoice.payment_method == 'efectivo' and invoice.cash_register_entry %}
-    <div style="font-size: 10px; margin: 10px 0;">
-        <div><strong>DETALLE DE PAGO:</strong></div>
-        {% set entry = invoice.cash_register_entry %}
-        {% if entry.bills_1000 > 0 %}<div>L1000 x {{ entry.bills_1000 }} = L{{ "%.2f"|format(entry.bills_1000 * 1000) }}</div>{% endif %}
-        {% if entry.bills_500 > 0 %}<div>L500 x {{ entry.bills_500 }} = L{{ "%.2f"|format(entry.bills_500 * 500) }}</div>{% endif %}
-        {% if entry.bills_200 > 0 %}<div>L200 x {{ entry.bills_200 }} = L{{ "%.2f"|format(entry.bills_200 * 200) }}</div>{% endif %}
-        {% if entry.bills_100 > 0 %}<div>L100 x {{ entry.bills_100 }} = L{{ "%.2f"|format(entry.bills_100 * 100) }}</div>{% endif %}
-        {% if entry.bills_50 > 0 %}<div>L50 x {{ entry.bills_50 }} = L{{ "%.2f"|format(entry.bills_50 * 50) }}</div>{% endif %}
-        {% if entry.bills_20 > 0 %}<div>L20 x {{ entry.bills_20 }} = L{{ "%.2f"|format(entry.bills_20 * 20) }}</div>{% endif %}
-        {% if entry.bills_10 > 0 %}<div>L10 x {{ entry.bills_10 }} = L{{ "%.2f"|format(entry.bills_10 * 10) }}</div>{% endif %}
-        {% if entry.bills_5 > 0 %}<div>L5 x {{ entry.bills_5 }} = L{{ "%.2f"|format(entry.bills_5 * 5) }}</div>{% endif %}
-        {% if entry.bills_2 > 0 %}<div>L2 x {{ entry.bills_2 }} = L{{ "%.2f"|format(entry.bills_2 * 2) }}</div>{% endif %}
-        {% if entry.bills_1 > 0 %}<div>L1 x {{ entry.bills_1 }} = L{{ "%.2f"|format(entry.bills_1 * 1) }}</div>{% endif %}
-        {% if entry.coins_50c > 0 %}<div>50c x {{ entry.coins_50c }} = L{{ "%.2f"|format(entry.coins_50c * 0.5) }}</div>{% endif %}
-        {% if entry.coins_20c > 0 %}<div>20c x {{ entry.coins_20c }} = L{{ "%.2f"|format(entry.coins_20c * 0.2) }}</div>{% endif %}
-        {% if entry.coins_10c > 0 %}<div>10c x {{ entry.coins_10c }} = L{{ "%.2f"|format(entry.coins_10c * 0.1) }}</div>{% endif %}
-        {% if entry.coins_5c > 0 %}<div>5c x {{ entry.coins_5c }} = L{{ "%.2f"|format(entry.coins_5c * 0.05) }}</div>{% endif %}
-    </div>
-    <div class="separator">================================</div>
-    {% endif %}
-
-    <!-- Services Information -->
-    {% set services_items = invoice.items|selectattr('service_type_id')|list %}
-    {% if services_items %}
-    <div style="font-size: 10px; margin: 10px 0;">
-        <div><strong>SERVICIOS REALIZADOS:</strong></div>
-        {% for item in services_items %}
-        <div>• {{ item.service_type.name }}</div>
-        {% if item.service_type.duration_minutes %}
-        <div>  Duración: {{ item.service_type.duration_minutes }} min</div>
-        {% endif %}
         {% endfor %}
     </div>
-    <div class="separator">================================</div>
-    {% endif %}
-
-    <!-- QR Code placeholder -->
-    <div class="qr-code">
-        <div style="border: 1px solid #000; width: 60px; height: 60px; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 8px;">
-            QR CODE<br>
-            {{ invoice.invoice_number }}
+    
+    <div style="border-top: 1px dashed #000; padding-top: 8px; margin-top: 8px;">
+        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
+            <span>TOTAL:</span>
+            <span>{{ format_lempiras(invoice.total_amount) }}</span>
         </div>
-        <div style="margin-top: 5px;">Escanea para detalles</div>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">
-        <div class="thank-you">
-            ¡GRACIAS POR VISITARNOS!<br>
-            TE ESPERAMOS PRONTO
-        </div>
-        
-        <div style="margin: 10px 0; font-size: 9px;">
-            Síguenos en redes sociales<br>
-            WhatsApp: 9464-8987<br>
-            Ubicación: Peña Blanca, Cortés
-        </div>
-        
-        <div style="margin: 10px 0; font-size: 9px;">
-            Esta factura es válida como<br>
-            comprobante de pago<br>
-            No válida para crédito fiscal
-        </div>
-        
-        <div style="margin: 10px 0; font-size: 8px;">
-            Sistema: Car Wash Manager v1.0<br>
-            Fecha impresión: {{ datetime.now().strftime('%d/%m/%Y %H:%M:%S') }}
-        </div>
-        
-        <div class="separator">********************************</div>
-        
-        <div style="font-size: 8px; margin-top: 10px;">
-            Conserve este comprobante<br>
-            para cualquier reclamo
+        <div style="display: flex; justify-content: space-between;">
+            <span>Pago:</span>
+            <span>{{ invoice.payment_method.title() }}</span>
         </div>
     </div>
+    
+    <div class="text-center mt-3" style="font-size: 10px;">
+        <p>¡Gracias por su preferencia!</p>
+        <p>Su vehículo queda reluciente</p>
+    </div>
+</div>
 
-    <script>
-        // Auto-print when page loads (for thermal printers)
-        window.addEventListener('load', function() {
-            // Small delay to ensure page is fully rendered
-            setTimeout(function() {
-                // Check if this is a thermal printer context
-                if (window.location.search.includes('autoprint=true')) {
-                    window.print();
-                }
-            }, 500);
-        });
-        
-        // Handle print completion
-        window.addEventListener('afterprint', function() {
-            // Optional: close window after printing
-            if (window.location.search.includes('autoclose=true')) {
-                window.close();
-            }
-        });
-    </script>
-</body>
-</html>
+<style>
+@media print {
+    .d-print-none { display: none !important; }
+    body { margin: 0; }
+    .invoice-thermal {
+        max-width: none !important;
+        width: 58mm !important;
+        font-size: 10px !important;
+    }
+}
+</style>
+{% endblock %}

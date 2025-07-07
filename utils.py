@@ -30,7 +30,7 @@ def calculate_cash_total(cash_data):
     total = 0.0
     
     # Bills
-    total += cash_data.get('bills_1000', 0) * 1000
+
     total += cash_data.get('bills_500', 0) * 500
     total += cash_data.get('bills_200', 0) * 200
     total += cash_data.get('bills_100', 0) * 100

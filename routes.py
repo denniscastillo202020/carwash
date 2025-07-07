@@ -156,7 +156,7 @@ def invoice():
     """Invoice creation"""
     products = Product.query.filter(Product.stock > 0).all()
     services = ServiceType.query.all()
-    return render_template('simple_invoice.html', products=products, services=services)
+    return render_template('simple_invoice.html', products=products, services=services, now=datetime.now())
 
 @app.route('/create_invoice', methods=['POST'])
 def create_invoice():
@@ -292,7 +292,7 @@ def process_cash_payment(invoice_id):
     try:
         # Get cash data directly from form
         cash_data = {
-            'bills_1000': int(request.form.get('bills_1000', 0)),
+
             'bills_500': int(request.form.get('bills_500', 0)),
             'bills_200': int(request.form.get('bills_200', 0)),
             'bills_100': int(request.form.get('bills_100', 0)),
@@ -462,6 +462,7 @@ def perform_cash_closing_route():
         # Create cash closing record
         cash_closing = CashClosing(
             closing_date=today,
+            sales_amount=expected_amount,
             expected_amount=expected_amount,
             actual_amount=actual_amount,
             difference=difference,

@@ -46,7 +46,7 @@ class InvoiceForm(FlaskForm):
 
 class CashRegisterForm(FlaskForm):
     # Bills
-    bills_1000 = IntegerField('Billetes L1000', validators=[NumberRange(min=0)], default=0)
+
     bills_500 = IntegerField('Billetes L500', validators=[NumberRange(min=0)], default=0)
     bills_200 = IntegerField('Billetes L200', validators=[NumberRange(min=0)], default=0)
     bills_100 = IntegerField('Billetes L100', validators=[NumberRange(min=0)], default=0)
