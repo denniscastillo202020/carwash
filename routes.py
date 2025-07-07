@@ -156,7 +156,7 @@ def invoice():
     """Invoice creation"""
     products = Product.query.filter(Product.stock > 0).all()
     services = ServiceType.query.all()
-    return render_template('invoice.html', products=products, services=services)
+    return render_template('simple_invoice.html', products=products, services=services)
 
 @app.route('/create_invoice', methods=['POST'])
 def create_invoice():
