@@ -193,6 +193,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form action="{{ url_for('add_appointment') }}" method="POST" id="appointmentForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <i class="fab fa-whatsapp"></i> Agendar Nueva Cita
@@ -205,7 +206,7 @@
                             <div class="mb-3">
                                 <label class="form-label">Teléfono del Cliente *</label>
                                 <input type="tel" class="form-control" name="customer_phone" 
-                                       id="appointmentPhone" placeholder="9464-8987" required>
+                                       id="appointmentPhone" placeholder="97164446" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Nombre del Cliente *</label>

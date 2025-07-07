@@ -1,0 +1,273 @@
+<!-- Invoice Preview Modal -->
+<div class="modal fade" id="invoicePreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye"></i> Vista Previa de Factura
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="invoicePreviewContent">
+                    <!-- Preview content will be loaded here -->
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="proceedWithInvoice()">
+                    <i class="fas fa-check"></i> Proceder a Facturar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cash Payment Modal -->
+<div class="modal fade" id="cashPaymentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-money-bill-wave"></i> Pago en Efectivo
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-file-invoice"></i> Resumen de Factura</h6>
+                        <div id="invoiceSummary" class="bg-light p-3 rounded mb-3">
+                            <!-- Invoice summary will be loaded here -->
+                        </div>
+                        
+                        <h6><i class="fas fa-calculator"></i> Cálculo de Cambio</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <label class="form-label">Total a Pagar:</label>
+                                <div class="form-control-plaintext fw-bold" id="totalAmount">L 0.00</div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Recibido:</label>
+                                <div class="form-control-plaintext fw-bold text-success" id="receivedAmount">L 0.00</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <label class="form-label">Cambio a Entregar:</label>
+                                <div class="form-control-plaintext fw-bold text-primary fs-4" id="changeAmount">L 0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-coins"></i> Denominaciones Recibidas</h6>
+                        <form id="cashDenominationForm">
+                            <!-- Billetes -->
+                            <div class="mb-3">
+                                <h6 class="text-success"><i class="fas fa-money-bill"></i> Billetes</h6>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label">L1000:</label>
+                                        <input type="number" class="form-control cash-input" name="bills_1000" value="0" min="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L500:</label>
+                                        <input type="number" class="form-control cash-input" name="bills_500" value="0" min="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L200:</label>
+                                        <input type="number" class="form-control cash-input" name="bills_200" value="0" min="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L100:</label>
+                                        <input type="number" class="form-control cash-input" name="bills_100" value="0" min="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L50:</label>
+                                        <input type="number" class="form-control cash-input" name="bills_50" value="0" min="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L20:</label>
+                                        <input type="number" class="form-control cash-input" name="bills_20" value="0" min="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L10:</label>
+                                        <input type="number" class="form-control cash-input" name="bills_10" value="0" min="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L5:</label>
+                                        <input type="number" class="form-control cash-input" name="bills_5" value="0" min="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L2:</label>
+                                        <input type="number" class="form-control cash-input" name="bills_2" value="0" min="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">L1:</label>
+                                        <input type="number" class="form-control cash-input" name="bills_1" value="0" min="0">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Monedas -->
+                            <div class="mb-3">
+                                <h6 class="text-warning"><i class="fas fa-coins"></i> Monedas</h6>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label">50c:</label>
+                                        <input type="number" class="form-control cash-input" name="coins_50c" value="0" min="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">20c:</label>
+                                        <input type="number" class="form-control cash-input" name="coins_20c" value="0" min="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">10c:</label>
+                                        <input type="number" class="form-control cash-input" name="coins_10c" value="0" min="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">5c:</label>
+                                        <input type="number" class="form-control cash-input" name="coins_5c" value="0" min="0">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-outline-secondary" onclick="clearCashForm()">
+                                    <i class="fas fa-eraser"></i> Limpiar
+                                </button>
+                                <button type="button" class="btn btn-outline-info" onclick="calculateExactChange()">
+                                    <i class="fas fa-calculator"></i> Calcular Exacto
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-success" onclick="completeCashPayment()" id="completePaymentBtn" disabled>
+                    <i class="fas fa-check"></i> Completar Pago
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Cash payment calculations
+let currentInvoiceTotal = 0;
+
+function initializeCashPayment(invoiceData) {
+    currentInvoiceTotal = invoiceData.total;
+    document.getElementById('totalAmount').textContent = 'L ' + currentInvoiceTotal.toFixed(2);
+    document.getElementById('invoiceSummary').innerHTML = invoiceData.summary;
+    
+    // Add event listeners to cash inputs
+    document.querySelectorAll('.cash-input').forEach(input => {
+        input.addEventListener('input', calculateCashTotal);
+    });
+    
+    calculateCashTotal();
+}
+
+function calculateCashTotal() {
+    let total = 0;
+    
+    // Calculate bills
+    total += parseInt(document.querySelector('[name="bills_1000"]').value || 0) * 1000;
+    total += parseInt(document.querySelector('[name="bills_500"]').value || 0) * 500;
+    total += parseInt(document.querySelector('[name="bills_200"]').value || 0) * 200;
+    total += parseInt(document.querySelector('[name="bills_100"]').value || 0) * 100;
+    total += parseInt(document.querySelector('[name="bills_50"]').value || 0) * 50;
+    total += parseInt(document.querySelector('[name="bills_20"]').value || 0) * 20;
+    total += parseInt(document.querySelector('[name="bills_10"]').value || 0) * 10;
+    total += parseInt(document.querySelector('[name="bills_5"]').value || 0) * 5;
+    total += parseInt(document.querySelector('[name="bills_2"]').value || 0) * 2;
+    total += parseInt(document.querySelector('[name="bills_1"]').value || 0) * 1;
+    
+    // Calculate coins
+    total += parseInt(document.querySelector('[name="coins_50c"]').value || 0) * 0.50;
+    total += parseInt(document.querySelector('[name="coins_20c"]').value || 0) * 0.20;
+    total += parseInt(document.querySelector('[name="coins_10c"]').value || 0) * 0.10;
+    total += parseInt(document.querySelector('[name="coins_5c"]').value || 0) * 0.05;
+    
+    document.getElementById('receivedAmount').textContent = 'L ' + total.toFixed(2);
+    
+    const change = total - currentInvoiceTotal;
+    document.getElementById('changeAmount').textContent = 'L ' + change.toFixed(2);
+    document.getElementById('changeAmount').className = 'form-control-plaintext fw-bold fs-4 ' + 
+        (change >= 0 ? 'text-success' : 'text-danger');
+    
+    // Enable/disable complete button
+    document.getElementById('completePaymentBtn').disabled = change < 0;
+}
+
+function clearCashForm() {
+    document.querySelectorAll('.cash-input').forEach(input => {
+        input.value = 0;
+    });
+    calculateCashTotal();
+}
+
+function calculateExactChange() {
+    let remaining = currentInvoiceTotal;
+    
+    // Clear current values
+    clearCashForm();
+    
+    // Calculate optimal denominations
+    const denominations = [
+        {name: 'bills_1000', value: 1000},
+        {name: 'bills_500', value: 500},
+        {name: 'bills_200', value: 200},
+        {name: 'bills_100', value: 100},
+        {name: 'bills_50', value: 50},
+        {name: 'bills_20', value: 20},
+        {name: 'bills_10', value: 10},
+        {name: 'bills_5', value: 5},
+        {name: 'bills_2', value: 2},
+        {name: 'bills_1', value: 1}
+    ];
+    
+    denominations.forEach(denom => {
+        const count = Math.floor(remaining / denom.value);
+        if (count > 0) {
+            document.querySelector(`[name="${denom.name}"]`).value = count;
+            remaining -= count * denom.value;
+        }
+    });
+    
+    calculateCashTotal();
+}
+
+function completeCashPayment() {
+    // Get cash data
+    const cashData = {};
+    document.querySelectorAll('.cash-input').forEach(input => {
+        cashData[input.name] = parseInt(input.value) || 0;
+    });
+    
+    // Add cash data to invoice form
+    Object.keys(cashData).forEach(key => {
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = key;
+        hiddenInput.value = cashData[key];
+        document.getElementById('invoiceForm').appendChild(hiddenInput);
+    });
+    
+    // Submit invoice
+    document.getElementById('invoiceForm').submit();
+}
+</script>
