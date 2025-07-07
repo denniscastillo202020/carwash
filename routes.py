@@ -840,73 +840,252 @@ def export_analytics():
 
 @app.route('/appointments')
 def appointments():
-    """Appointment management"""
-    selected_date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
-    selected_date_obj = datetime.strptime(selected_date, '%Y-%m-%d').date()
-    
-    # Get appointments for selected date
-    appointments_list = Appointment.query.filter(
-        func.date(Appointment.appointment_date) == selected_date_obj
-    ).order_by(Appointment.appointment_date).all()
-    
+    """Simplified appointment management"""
+    # Get services for dropdown
     services = ServiceType.query.all()
     
-    return render_template('appointments.html', 
-                         appointments=appointments_list,
+    # Get today's appointments
+    today = datetime.now().date()
+    today_start = datetime.combine(today, datetime.min.time())
+    today_end = datetime.combine(today, datetime.max.time())
+    
+    todays_appointments = Appointment.query.filter(
+        Appointment.appointment_date.between(today_start, today_end)
+    ).order_by(Appointment.appointment_date).all()
+    
+    return render_template('simple_appointments.html', 
                          services=services,
-                         selected_date=selected_date)
+                         todays_appointments=todays_appointments,
+                         today=today)
 
 @app.route('/add_appointment', methods=['POST'])
 def add_appointment():
-    """Add new appointment"""
-    form = AppointmentForm()
-    form.service_type_id.choices = [(s.id, s.name) for s in ServiceType.query.all()]
-    
-    if form.validate_on_submit():
+    """Add new appointment - simplified version"""
+    try:
+        # Get form data
+        customer_phone = request.form.get('customer_phone', '').strip()
+        customer_name = request.form.get('customer_name', '').strip()
+        appointment_date = request.form.get('appointment_date')
+        appointment_time = request.form.get('appointment_time')
+        service_type_id = request.form.get('service_type_id')
+        notes = request.form.get('notes', '').strip()
+        
+        # Validate required fields
+        if not all([customer_phone, customer_name, appointment_date, appointment_time, service_type_id]):
+            flash('Todos los campos son obligatorios', 'error')
+            return redirect(url_for('appointments'))
+        
+        # Combine date and time
+        appointment_datetime = datetime.strptime(f"{appointment_date} {appointment_time}", '%Y-%m-%d %H:%M')
+        
         # Find or create customer
-        customer = Customer.query.filter_by(phone=form.customer_phone.data).first()
+        customer = Customer.query.filter_by(phone=customer_phone).first()
         if not customer:
             customer = Customer(
-                name=form.customer_name.data,
-                phone=form.customer_phone.data
+                name=customer_name,
+                phone=customer_phone
             )
             db.session.add(customer)
             db.session.flush()
+        else:
+            # Update customer name if different
+            customer.name = customer_name
         
+        # Create appointment
         appointment = Appointment(
             customer_id=customer.id,
-            service_type_id=form.service_type_id.data,
-            appointment_date=form.appointment_date.data,
-            notes=form.notes.data
+            service_type_id=int(service_type_id),
+            appointment_date=appointment_datetime,
+            notes=notes,
+            status='scheduled'
         )
         
         db.session.add(appointment)
         db.session.commit()
         
         # Send WhatsApp confirmation
-        service = ServiceType.query.get(form.service_type_id.data)
-        message = f"""¡Hola {customer.name}!
-        
-Tu cita ha sido confirmada:
-📅 Fecha: {appointment.appointment_date.strftime('%d/%m/%Y %H:%M')}
-🚗 Servicio: {service.name}
-💰 Precio: {format_lempiras(service.price)}
+        service = ServiceType.query.get(int(service_type_id))
+        message = f"""✅ *CITA CONFIRMADA*
 
-¡Te esperamos en nuestro car wash!
+Hola {customer.name},
 
-Ubicación: Peña Blanca, Cortés
-Teléfono: 97164446"""
+Tu cita ha sido agendada:
+📅 *Fecha:* {appointment_datetime.strftime('%d/%m/%Y')}
+🕐 *Hora:* {appointment_datetime.strftime('%H:%M')}
+🚗 *Servicio:* {service.name}
+💰 *Precio:* {format_lempiras(service.price)}
+
+📍 *Car Wash Peña Blanca*
+📞 Tel: 97164446
+
+¡Te esperamos! 🚗✨"""
         
-        success, response = send_whatsapp_message(customer.phone, message)
-        if success:
-            flash('Cita creada y confirmación enviada por WhatsApp', 'success')
-        else:
-            flash('Cita creada, pero no se pudo enviar WhatsApp', 'warning')
+        send_whatsapp_message(customer.phone, message)
         
-        return redirect(url_for('appointments'))
+        flash(f'Cita agendada para {customer.name} - Confirmación enviada por WhatsApp', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al agendar cita: {str(e)}', 'error')
     
-    flash('Error al crear la cita', 'error')
     return redirect(url_for('appointments'))
+
+@app.route('/complete_appointment/<int:appointment_id>', methods=['POST'])
+def complete_appointment(appointment_id):
+    """Mark appointment as completed"""
+    try:
+        appointment = Appointment.query.get_or_404(appointment_id)
+        appointment.status = 'completed'
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/send_ready_notification/<int:appointment_id>', methods=['POST'])
+def send_ready_notification(appointment_id):
+    """Send WhatsApp notification that car is ready"""
+    try:
+        appointment = Appointment.query.get_or_404(appointment_id)
+        customer = appointment.customer
+        
+        message = f"""🚗✨ *¡TU VEHÍCULO ESTÁ LISTO!*
+
+Hola {customer.name},
+
+Tu {appointment.service_type.name} ha sido completado.
+
+📍 *Car Wash Peña Blanca*
+📞 Tel: 97164446
+
+¡Ven a recoger tu vehículo reluciente! 🌟"""
+        
+        send_whatsapp_message(customer.phone, message)
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/whatsapp_webhook', methods=['GET', 'POST'])
+def whatsapp_webhook():
+    """WhatsApp Bot webhook for automated responses"""
+    if request.method == 'GET':
+        # Webhook verification
+        verify_token = "car_wash_bot_token"
+        mode = request.args.get('hub.mode')
+        token = request.args.get('hub.verify_token')
+        challenge = request.args.get('hub.challenge')
+        
+        if mode and token:
+            if mode == 'subscribe' and token == verify_token:
+                return challenge
+        return 'Forbidden', 403
+    
+    elif request.method == 'POST':
+        # Process incoming messages
+        try:
+            body = request.get_json()
+            
+            if body.get('object') == 'whatsapp_business_account':
+                for entry in body.get('entry', []):
+                    for change in entry.get('changes', []):
+                        if change.get('field') == 'messages':
+                            messages = change.get('value', {}).get('messages', [])
+                            
+                            for message in messages:
+                                phone = message.get('from')
+                                text = message.get('text', {}).get('body', '').lower()
+                                
+                                # Process bot commands
+                                if any(word in text for word in ['hola', 'cita', 'agendar', 'horarios']):
+                                    handle_whatsapp_message(phone, text)
+            
+            return 'OK', 200
+            
+        except Exception as e:
+            return f'Error: {str(e)}', 500
+
+def handle_whatsapp_message(phone, text):
+    """Handle incoming WhatsApp messages"""
+    try:
+        if 'horarios' in text or 'disponibles' in text:
+            # Send available time slots
+            response = get_available_slots_message()
+            send_whatsapp_message(phone, response)
+            
+        elif 'agendar' in text:
+            # Extract date and time from message
+            # Simple parsing - could be enhanced
+            response = """Para agendar una cita, envía un mensaje como:
+*"Agendar mañana 10:00"* o
+*"Agendar 15/01 14:00"*
+
+O llámanos al 97164446 📞"""
+            send_whatsapp_message(phone, response)
+            
+        else:
+            # Default greeting and options
+            response = f"""¡Hola! 👋 Bienvenido a *Car Wash Peña Blanca*
+
+🚗 *Servicios disponibles:*
+• Lavado Básico - L80
+• Lavado Premium - L120  
+• Encerado - L150
+
+📅 *Para agendar:*
+Escribe "horarios disponibles" o llámanos al 97164446
+
+📍 Peña Blanca, Cortés
+🕐 Lunes a Sábado: 7:00 AM - 6:00 PM"""
+            
+            send_whatsapp_message(phone, response)
+            
+    except Exception as e:
+        print(f"Error handling WhatsApp message: {e}")
+
+def get_available_slots_message():
+    """Generate message with available time slots"""
+    try:
+        today = datetime.now().date()
+        tomorrow = today + timedelta(days=1)
+        
+        # Get busy slots for today and tomorrow
+        today_appointments = Appointment.query.filter(
+            func.date(Appointment.appointment_date) == today,
+            Appointment.status == 'scheduled'
+        ).all()
+        
+        tomorrow_appointments = Appointment.query.filter(
+            func.date(Appointment.appointment_date) == tomorrow,
+            Appointment.status == 'scheduled'
+        ).all()
+        
+        # Define working hours
+        working_hours = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
+                        '13:00', '14:00', '15:00', '16:00', '17:00']
+        
+        # Get available slots for today
+        today_busy = [apt.appointment_date.strftime('%H:%M') for apt in today_appointments]
+        today_available = [hour for hour in working_hours if hour not in today_busy]
+        
+        # Get available slots for tomorrow  
+        tomorrow_busy = [apt.appointment_date.strftime('%H:%M') for apt in tomorrow_appointments]
+        tomorrow_available = [hour for hour in working_hours if hour not in tomorrow_busy]
+        
+        message = f"""📅 *HORARIOS DISPONIBLES*
+
+*HOY ({today.strftime('%d/%m')}):*
+{', '.join(today_available) if today_available else 'No hay horarios disponibles'}
+
+*MAÑANA ({tomorrow.strftime('%d/%m')}):*
+{', '.join(tomorrow_available) if tomorrow_available else 'No hay horarios disponibles'}
+
+Para agendar llama al 97164446 📞"""
+        
+        return message
+        
+    except Exception as e:
+        return "Error al consultar horarios. Llama al 97164446 📞"
 
 @app.route('/api/available_slots')
 def api_available_slots():

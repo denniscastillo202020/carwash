@@ -145,3 +145,6 @@ Preferred communication style: Simple, everyday language.
 - ✓ Dashboard customization - Added background personalization options
 - ✓ Auto-refresh analytics - System updates data every 5 minutes automatically
 - ✓ Excel exports - All cash closings and analytics export to Excel automatically
+- ✓ Simplified appointments - Streamlined single-form appointment scheduling
+- ✓ WhatsApp bot integration - Automated responses for availability and confirmations
+- ✓ Ready notifications - One-click customer notifications when service is complete
