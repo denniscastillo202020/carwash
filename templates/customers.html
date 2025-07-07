@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Clientes - Car Wash Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-users"></i> Gestión de Clientes (CRM)
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-list"></i> Lista de Clientes</h5>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                    <i class="fas fa-user-plus"></i> Agregar Cliente
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- Search -->
+                <form method="GET" class="mb-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="search" value="{{ search }}" 
+                               placeholder="Buscar por nombre, teléfono o email...">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        {% if search %}
+                        <a href="{{ url_for('customers') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+                
+                <!-- Customers Table -->
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Email</th>
+                                <th>Visitas</th>
+                                <th>Última Visita</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for customer in customers %}
+                            <tr>
+                                <td>
+                                    <strong>{{ customer.name }}</strong>
+                                    {% if customer.address %}
+                                    <br><small class="text-muted">{{ customer.address }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ customer.phone }}</td>
+                                <td>{{ customer.email or '-' }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ customer.total_visits or 1 }}</span>
+                                </td>
+                                <td>
+                                    {% if customer.last_visit %}
+                                        {{ customer.last_visit.strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        {{ customer.created_at.strftime('%d/%m/%Y') }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" onclick="viewCustomer({{ customer.id }})">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-success" onclick="createInvoiceForCustomer({{ customer.id }})">
+                                            <i class="fas fa-file-invoice"></i>
+                                        </button>
+                                        <button class="btn btn-outline-info" onclick="scheduleAppointment({{ customer.id }})">
+                                            <i class="fab fa-whatsapp"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    {% if not customers %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">
+                            {% if search %}
+                                No se encontraron clientes con el término "{{ search }}"
+                            {% else %}
+                                No hay clientes registrados
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- CRM Stats -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-pie"></i> Estadísticas CRM</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-12 mb-3">
+                        <h3>{{ customers|length }}</h3>
+                        <small>Total Clientes</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4>{{ customers|selectattr('total_visits', 'gt', 5)|list|length }}</h4>
+                        <small>Clientes Frecuentes</small>
+                    </div>
+                    <div class="col-6">
+                        <h4>{{ customers|selectattr('email')|list|length }}</h4>
+                        <small>Con Email</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Customers -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5><i class="fas fa-star"></i> Clientes Top</h5>
+            </div>
+            <div class="card-body">
+                {% set top_customers = customers|sort(attribute='total_visits', reverse=true)|list %}
+                {% for customer in top_customers[:5] %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <strong>{{ customer.name }}</strong><br>
+                        <small class="text-muted">{{ customer.phone }}</small>
+                    </div>
+                    <span class="badge bg-warning">{{ customer.total_visits or 1 }}</span>
+                </div>
+                {% if not loop.last %}<hr>{% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Customer Modal -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('add_customer') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Agregar Cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre Completo *</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono *</label>
+                        <input type="tel" class="form-control" name="phone" required placeholder="9999-9999">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Dirección</label>
+                        <textarea class="form-control" name="address" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Detail Modal -->
+<div class="modal fade" id="customerDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="customerDetailContent">
+                <!-- Content loaded via JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function viewCustomer(customerId) {
+    // This would load customer details via AJAX
+    // For now, we'll show a placeholder
+    document.getElementById('customerDetailContent').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p>Cargando detalles del cliente...</p>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('customerDetailModal'));
+    modal.show();
+}
+
+function createInvoiceForCustomer(customerId) {
+    // Redirect to invoice page with customer pre-selected
+    window.location.href = `/invoice?customer_id=${customerId}`;
+}
+
+function scheduleAppointment(customerId) {
+    // Redirect to appointments page with customer pre-selected
+    window.location.href = `/appointments?customer_id=${customerId}`;
+}
+</script>
+{% endblock %}

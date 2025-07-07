@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+
+{% block title %}Citas WhatsApp - Car Wash Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fab fa-whatsapp"></i> Gestión de Citas WhatsApp
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-calendar-alt"></i> Citas del Día</h5>
+                <div>
+                    <input type="date" class="form-control d-inline-block" id="dateFilter" 
+                           value="{{ selected_date }}" style="width: auto;">
+                    <button type="button" class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#addAppointmentModal">
+                        <i class="fas fa-plus"></i> Nueva Cita
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if appointments %}
+                <div class="timeline">
+                    {% for appointment in appointments %}
+                    <div class="timeline-item mb-3">
+                        <div class="card border-start border-primary border-4">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2">
+                                        <div class="text-center">
+                                            <h5 class="mb-0 text-primary">
+                                                {{ appointment.appointment_date.strftime('%H:%M') }}
+                                            </h5>
+                                            <small class="text-muted">
+                                                {{ appointment.appointment_date.strftime('%d/%m') }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="mb-1">
+                                            <i class="fas fa-user"></i> {{ appointment.customer.name }}
+                                        </h6>
+                                        <p class="mb-1">
+                                            <i class="fas fa-phone"></i> {{ appointment.customer.phone }}
+                                        </p>
+                                        <p class="mb-1">
+                                            <i class="fas fa-tools"></i> {{ appointment.service_type.name }}
+                                        </p>
+                                        {% if appointment.notes %}
+                                        <p class="mb-0 text-muted">
+                                            <i class="fas fa-sticky-note"></i> {{ appointment.notes }}
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <span class="badge bg-info p-2">
+                                            {{ appointment.service_type.duration_minutes }} min
+                                        </span>
+                                        <br>
+                                        <small class="text-success">
+                                            {{ format_lempiras(appointment.service_type.price) }}
+                                        </small>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="btn-group-vertical w-100">
+                                            {% if appointment.status == 'scheduled' %}
+                                            <button class="btn btn-sm btn-success" onclick="completeAppointment({{ appointment.id }})">
+                                                <i class="fas fa-check"></i> Completar
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="createInvoiceFromAppointment({{ appointment.id }})">
+                                                <i class="fas fa-file-invoice"></i> Facturar
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning" onclick="rescheduleAppointment({{ appointment.id }})">
+                                                <i class="fas fa-clock"></i> Reagendar
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment({{ appointment.id }})">
+                                                <i class="fas fa-times"></i> Cancelar
+                                            </button>
+                                            {% else %}
+                                            <span class="badge bg-{{ 'success' if appointment.status == 'completed' else 'danger' }}">
+                                                {{ appointment.status|title }}
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fab fa-whatsapp fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No hay citas para {{ selected_date }}</h4>
+                    <p class="text-muted">Los clientes pueden agendar citas enviando un WhatsApp</p>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addAppointmentModal">
+                        <i class="fas fa-plus"></i> Agregar Primera Cita
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- WhatsApp Info -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fab fa-whatsapp"></i> Información WhatsApp</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-phone"></i> Número de Contacto</h6>
+                    <p class="mb-0">9999-9999</p>
+                </div>
+                
+                <h6>Mensaje Automático para Clientes:</h6>
+                <div class="bg-light p-3 rounded">
+                    <small>
+                        ¡Hola! 👋 Bienvenido a nuestro Car Wash.<br><br>
+                        Para agendar tu cita, responde con:<br>
+                        📅 Fecha deseada (DD/MM/YYYY)<br>
+                        ⏰ Hora preferida<br>
+                        🚗 Tipo de servicio<br><br>
+                        Servicios disponibles:<br>
+                        {% for service in services %}
+                        • {{ service.name }} - {{ format_lempiras(service.price) }}<br>
+                        {% endfor %}
+                        <br>
+                        📍 Ubicación: Peña Blanca, Cortés<br>
+                        📞 Teléfono: 9999-9999
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Available Time Slots -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5><i class="fas fa-clock"></i> Horarios Disponibles</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Fecha:</label>
+                    <input type="date" class="form-control" id="slotDate" 
+                           value="{{ selected_date }}" min="{{ datetime.now().strftime('%Y-%m-%d') }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Servicio:</label>
+                    <select class="form-select" id="slotService">
+                        <option value="">Seleccionar servicio</option>
+                        {% for service in services %}
+                        <option value="{{ service.id }}">{{ service.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="availableSlots">
+                    <p class="text-muted">Selecciona fecha y servicio para ver horarios</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Estadísticas</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4>{{ appointments|length }}</h4>
+                        <small>Citas Hoy</small>
+                    </div>
+                    <div class="col-6">
+                        <h4>{{ appointments|selectattr('status', 'equalto', 'scheduled')|list|length }}</h4>
+                        <small>Pendientes</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Appointment Modal -->
+<div class="modal fade" id="addAppointmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="{{ url_for('add_appointment') }}" method="POST" id="appointmentForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fab fa-whatsapp"></i> Agendar Nueva Cita
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Teléfono del Cliente *</label>
+                                <input type="tel" class="form-control" name="customer_phone" 
+                                       id="appointmentPhone" placeholder="9999-9999" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nombre del Cliente *</label>
+                                <input type="text" class="form-control" name="customer_name" 
+                                       id="appointmentName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tipo de Servicio *</label>
+                                <select class="form-select" name="service_type_id" id="appointmentService" required>
+                                    <option value="">Seleccionar servicio</option>
+                                    {% for service in services %}
+                                    <option value="{{ service.id }}" data-duration="{{ service.duration_minutes }}" data-price="{{ service.price }}">
+                                        {{ service.name }} - {{ format_lempiras(service.price) }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Fecha *</label>
+                                <input type="date" class="form-control" name="appointment_date" 
+                                       id="appointmentDate" min="{{ datetime.now().strftime('%Y-%m-%d') }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Hora *</label>
+                                <select class="form-select" name="appointment_time" id="appointmentTime" required>
+                                    <option value="">Seleccionar hora</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Notas</label>
+                                <textarea class="form-control" name="notes" rows="3" 
+                                          placeholder="Observaciones especiales..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Customer Info Display -->
+                    <div id="appointmentCustomerInfo" class="alert alert-info d-none">
+                        <h6><i class="fas fa-user-check"></i> Cliente Existente</h6>
+                        <div id="appointmentCustomerContent"></div>
+                    </div>
+                    
+                    <!-- Service Info Display -->
+                    <div id="serviceInfo" class="alert alert-success d-none">
+                        <h6><i class="fas fa-info-circle"></i> Información del Servicio</h6>
+                        <div id="serviceInfoContent"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fab fa-whatsapp"></i> Agendar y Enviar WhatsApp
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Date filter change
+document.getElementById('dateFilter').addEventListener('change', function() {
+    const selectedDate = this.value;
+    window.location.href = `{{ url_for('appointments') }}?date=${selectedDate}`;
+});
+
+// Available slots functionality
+document.getElementById('slotDate').addEventListener('change', loadAvailableSlots);
+document.getElementById('slotService').addEventListener('change', loadAvailableSlots);
+
+function loadAvailableSlots() {
+    const date = document.getElementById('slotDate').value;
+    const serviceId = document.getElementById('slotService').value;
+    const slotsContainer = document.getElementById('availableSlots');
+    
+    if (!date || !serviceId) {
+        slotsContainer.innerHTML = '<p class="text-muted">Selecciona fecha y servicio para ver horarios</p>';
+        return;
+    }
+    
+    slotsContainer.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
+    
+    fetch(`/api/available_slots?date=${date}&service_id=${serviceId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.slots && data.slots.length > 0) {
+                let html = '<div class="row">';
+                data.slots.forEach(slot => {
+                    html += `
+                        <div class="col-4 mb-2">
+                            <button class="btn btn-outline-success btn-sm w-100 time-slot" data-time="${slot}">
+                                ${slot}
+                            </button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                slotsContainer.innerHTML = html;
+                
+                // Add click handlers for time slots
+                document.querySelectorAll('.time-slot').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const time = this.dataset.time;
+                        document.getElementById('appointmentTime').innerHTML = 
+                            `<option value="${time}" selected>${time}</option>`;
+                        document.getElementById('appointmentDate').value = date;
+                        document.getElementById('appointmentService').value = serviceId;
+                        
+                        // Trigger service info update
+                        updateServiceInfo();
+                        
+                        // Open appointment modal
+                        const modal = new bootstrap.Modal(document.getElementById('addAppointmentModal'));
+                        modal.show();
+                    });
+                });
+            } else {
+                slotsContainer.innerHTML = '<p class="text-warning">No hay horarios disponibles</p>';
+            }
+        })
+        .catch(error => {
+            slotsContainer.innerHTML = '<p class="text-danger">Error al cargar horarios</p>';
+        });
+}
+
+// Customer search in appointment form
+document.getElementById('appointmentPhone').addEventListener('input', function() {
+    const phone = this.value;
+    if (phone.length >= 8) {
+        searchCustomerForAppointment(phone);
+    }
+});
+
+function searchCustomerForAppointment(phone) {
+    fetch(`/search_customer?phone=${phone}`)
+        .then(response => response.json())
+        .then(data => {
+            const infoDiv = document.getElementById('appointmentCustomerInfo');
+            const contentDiv = document.getElementById('appointmentCustomerContent');
+            
+            if (data.found) {
+                document.getElementById('appointmentName').value = data.name;
+                
+                contentDiv.innerHTML = `
+                    <strong>${data.name}</strong><br>
+                    Visitas anteriores: ${data.total_visits}<br>
+                    Email: ${data.email || 'No registrado'}
+                `;
+                infoDiv.classList.remove('d-none');
+            } else {
+                infoDiv.classList.add('d-none');
+                document.getElementById('appointmentName').value = '';
+            }
+        });
+}
+
+// Service info update
+document.getElementById('appointmentService').addEventListener('change', updateServiceInfo);
+
+function updateServiceInfo() {
+    const serviceSelect = document.getElementById('appointmentService');
+    const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+    const infoDiv = document.getElementById('serviceInfo');
+    const contentDiv = document.getElementById('serviceInfoContent');
+    
+    if (selectedOption && selectedOption.value) {
+        const duration = selectedOption.dataset.duration;
+        const price = selectedOption.dataset.price;
+        
+        contentDiv.innerHTML = `
+            <strong>${selectedOption.text}</strong><br>
+            Duración: ${duration} minutos<br>
+            Precio: L ${parseFloat(price).toFixed(2)}
+        `;
+        infoDiv.classList.remove('d-none');
+        
+        // Update available times based on service duration
+        loadAppointmentTimes();
+    } else {
+        infoDiv.classList.add('d-none');
+    }
+}
+
+// Load appointment times when date changes
+document.getElementById('appointmentDate').addEventListener('change', loadAppointmentTimes);
+
+function loadAppointmentTimes() {
+    const date = document.getElementById('appointmentDate').value;
+    const serviceId = document.getElementById('appointmentService').value;
+    const timeSelect = document.getElementById('appointmentTime');
+    
+    if (!date || !serviceId) {
+        timeSelect.innerHTML = '<option value="">Seleccionar hora</option>';
+        return;
+    }
+    
+    fetch(`/api/available_slots?date=${date}&service_id=${serviceId}`)
+        .then(response => response.json())
+        .then(data => {
+            timeSelect.innerHTML = '<option value="">Seleccionar hora</option>';
+            if (data.slots) {
+                data.slots.forEach(slot => {
+                    timeSelect.innerHTML += `<option value="${slot}">${slot}</option>`;
+                });
+            }
+        });
+}
+
+// Form submission handling
+document.getElementById('appointmentForm').addEventListener('submit', function(e) {
+    const date = document.getElementById('appointmentDate').value;
+    const time = document.getElementById('appointmentTime').value;
+    
+    if (date && time) {
+        // Combine date and time
+        const datetime = `${date} ${time}`;
+        
+        // Create hidden input for combined datetime
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'appointment_date';
+        hiddenInput.value = datetime;
+        this.appendChild(hiddenInput);
+        
+        // Remove the original date input to avoid conflicts
+        document.querySelector('input[name="appointment_date"]:not([type="hidden"])').name = 'appointment_date_display';
+    }
+});
+
+// Appointment management functions
+function completeAppointment(appointmentId) {
+    if (confirm('¿Marcar esta cita como completada?')) {
+        // Implementation for completing appointment
+        console.log('Completing appointment:', appointmentId);
+    }
+}
+
+function createInvoiceFromAppointment(appointmentId) {
+    window.location.href = `/invoice?appointment_id=${appointmentId}`;
+}
+
+function rescheduleAppointment(appointmentId) {
+    // Implementation for rescheduling
+    console.log('Rescheduling appointment:', appointmentId);
+}
+
+function cancelAppointment(appointmentId) {
+    if (confirm('¿Cancelar esta cita? Se enviará una notificación por WhatsApp.')) {
+        // Implementation for canceling appointment
+        console.log('Canceling appointment:', appointmentId);
+    }
+}
+</script>
+{% endblock %}

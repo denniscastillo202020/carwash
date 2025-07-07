@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block title %}Facturación - Car Wash Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-file-invoice"></i> Sistema de Facturación
+        </h1>
+    </div>
+</div>
+
+<form action="{{ url_for('create_invoice') }}" method="POST" id="invoiceForm">
+    <div class="row">
+        <!-- Customer Information -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-user"></i> Información del Cliente</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono *</label>
+                        <input type="tel" class="form-control" name="customer_phone" id="customerPhone" 
+                               placeholder="9999-9999" required>
+                        <small class="form-text text-muted">Buscar cliente existente</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre Completo *</label>
+                        <input type="text" class="form-control" name="customer_name" id="customerName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="customer_email" id="customerEmail">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Dirección</label>
+                        <textarea class="form-control" name="customer_address" id="customerAddress" rows="3"></textarea>
+                    </div>
+                    
+                    <!-- Customer Info Display -->
+                    <div id="customerInfo" class="alert alert-info d-none">
+                        <h6><i class="fas fa-user-check"></i> Cliente Encontrado</h6>
+                        <div id="customerInfoContent"></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Método de Pago</label>
+                        <select class="form-select" name="payment_method">
+                            <option value="efectivo">Efectivo</option>
+                            <option value="tarjeta">Tarjeta</option>
+                            <option value="transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Products and Services -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-shopping-cart"></i> Productos y Servicios</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Tabs for Products and Services -->
+                    <ul class="nav nav-pills mb-3" id="servicesTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="services-tab" data-bs-toggle="pill" 
+                                    data-bs-target="#services-content" type="button" role="tab">
+                                <i class="fas fa-tools"></i> Servicios
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="products-tab" data-bs-toggle="pill" 
+                                    data-bs-target="#products-content" type="button" role="tab">
+                                <i class="fas fa-box"></i> Productos
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="servicesTabContent">
+                        <!-- Services Tab -->
+                        <div class="tab-pane fade show active" id="services-content" role="tabpanel">
+                            <div class="row">
+                                {% for service in services %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card service-card" data-price="{{ service.price }}">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6>{{ service.name }}</h6>
+                                                    <p class="text-muted mb-1">{{ format_lempiras(service.price) }}</p>
+                                                    <small class="text-muted">{{ service.duration_minutes }} min</small>
+                                                    <span class="badge bg-info ms-2">{{ service.category }}</span>
+                                                </div>
+                                                <div>
+                                                    <input type="number" class="form-control form-control-sm" 
+                                                           name="service_quantity_{{ service.id }}" 
+                                                           placeholder="0" min="0" max="10" 
+                                                           style="width: 60px;" onchange="updateTotal()">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Products Tab -->
+                        <div class="tab-pane fade" id="products-content" role="tabpanel">
+                            <div class="mb-3">
+                                <input type="text" class="form-control" id="productSearch" 
+                                       placeholder="Buscar productos o escanear código...">
+                            </div>
+                            <div class="row" id="productsContainer">
+                                {% for product in products %}
+                                <div class="col-md-6 mb-3 product-item">
+                                    <div class="card product-card" data-price="{{ product.price }}">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6>{{ product.name }}</h6>
+                                                    <p class="text-muted mb-1">{{ format_lempiras(product.price) }}</p>
+                                                    <small class="text-muted">Stock: {{ product.stock }}</small>
+                                                    <span class="badge bg-secondary ms-2">{{ product.category }}</span>
+                                                </div>
+                                                <div>
+                                                    <input type="number" class="form-control form-control-sm" 
+                                                           name="product_quantity_{{ product.id }}" 
+                                                           placeholder="0" min="0" max="{{ product.stock }}" 
+                                                           style="width: 60px;" onchange="updateTotal()">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Invoice Summary -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="fas fa-calculator"></i> Resumen de Factura</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div id="selectedItems" class="mb-3">
+                                <p class="text-muted">No hay items seleccionados</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-end">
+                                <h4>Total: <span id="totalAmount">L 0.00</span></h4>
+                                <button type="submit" class="btn btn-success btn-lg mt-2" id="createInvoiceBtn" disabled>
+                                    <i class="fas fa-file-invoice"></i> Crear Factura
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedItems = [];
+let totalAmount = 0;
+
+// Customer search functionality
+document.getElementById('customerPhone').addEventListener('input', function() {
+    const phone = this.value;
+    if (phone.length >= 8) {
+        searchCustomer(phone);
+    }
+});
+
+function searchCustomer(phone) {
+    fetch(`/search_customer?phone=${phone}`)
+        .then(response => response.json())
+        .then(data => {
+            const infoDiv = document.getElementById('customerInfo');
+            const contentDiv = document.getElementById('customerInfoContent');
+            
+            if (data.found) {
+                document.getElementById('customerName').value = data.name;
+                document.getElementById('customerEmail').value = data.email;
+                document.getElementById('customerAddress').value = data.address;
+                
+                contentDiv.innerHTML = `
+                    <strong>${data.name}</strong><br>
+                    Visitas anteriores: ${data.total_visits}
+                `;
+                infoDiv.classList.remove('d-none');
+            } else {
+                infoDiv.classList.add('d-none');
+                document.getElementById('customerName').value = '';
+                document.getElementById('customerEmail').value = '';
+                document.getElementById('customerAddress').value = '';
+            }
+        });
+}
+
+// Product search
+document.getElementById('productSearch').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const products = document.querySelectorAll('.product-item');
+    
+    products.forEach(product => {
+        const text = product.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            product.style.display = '';
+        } else {
+            product.style.display = 'none';
+        }
+    });
+});
+
+// Update total calculation
+function updateTotal() {
+    selectedItems = [];
+    totalAmount = 0;
+    
+    // Check service quantities
+    document.querySelectorAll('input[name^="service_quantity_"]').forEach(input => {
+        const quantity = parseInt(input.value) || 0;
+        if (quantity > 0) {
+            const card = input.closest('.service-card');
+            const price = parseFloat(card.dataset.price);
+            const name = card.querySelector('h6').textContent;
+            
+            selectedItems.push({
+                name: name,
+                quantity: quantity,
+                price: price,
+                total: price * quantity,
+                type: 'service'
+            });
+            
+            totalAmount += price * quantity;
+        }
+    });
+    
+    // Check product quantities
+    document.querySelectorAll('input[name^="product_quantity_"]').forEach(input => {
+        const quantity = parseInt(input.value) || 0;
+        if (quantity > 0) {
+            const card = input.closest('.product-card');
+            const price = parseFloat(card.dataset.price);
+            const name = card.querySelector('h6').textContent;
+            
+            selectedItems.push({
+                name: name,
+                quantity: quantity,
+                price: price,
+                total: price * quantity,
+                type: 'product'
+            });
+            
+            totalAmount += price * quantity;
+        }
+    });
+    
+    updateSummary();
+}
+
+function updateSummary() {
+    const selectedItemsDiv = document.getElementById('selectedItems');
+    const totalAmountSpan = document.getElementById('totalAmount');
+    const createBtn = document.getElementById('createInvoiceBtn');
+    
+    if (selectedItems.length === 0) {
+        selectedItemsDiv.innerHTML = '<p class="text-muted">No hay items seleccionados</p>';
+        createBtn.disabled = true;
+    } else {
+        let html = '<ul class="list-unstyled">';
+        selectedItems.forEach(item => {
+            html += `
+                <li class="d-flex justify-content-between">
+                    <span>${item.name} x${item.quantity}</span>
+                    <span>L ${item.total.toFixed(2)}</span>
+                </li>
+            `;
+        });
+        html += '</ul>';
+        selectedItemsDiv.innerHTML = html;
+        createBtn.disabled = false;
+    }
+    
+    totalAmountSpan.textContent = `L ${totalAmount.toFixed(2)}`;
+}
+
+// Form validation
+document.getElementById('invoiceForm').addEventListener('submit', function(e) {
+    if (selectedItems.length === 0) {
+        e.preventDefault();
+        alert('Debe seleccionar al menos un producto o servicio');
+        return false;
+    }
+    
+    const customerName = document.getElementById('customerName').value;
+    const customerPhone = document.getElementById('customerPhone').value;
+    
+    if (!customerName || !customerPhone) {
+        e.preventDefault();
+        alert('Nombre y teléfono del cliente son obligatorios');
+        return false;
+    }
+});
+</script>
+{% endblock %}

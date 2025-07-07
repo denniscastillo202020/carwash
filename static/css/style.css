@@ -1,0 +1,546 @@
+/* Car Wash Manager Custom Styles */
+
+:root {
+    --primary-color: #0066cc;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #17a2b8;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    --carwash-blue: #1e90ff;
+    --carwash-green: #32cd32;
+    --lempira-gold: #ffd700;
+}
+
+/* Global Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fa;
+    color: #2c3e50;
+}
+
+/* Navigation Enhancements */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin: 0 0.25rem;
+    border-radius: 0.25rem;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Card Enhancements */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+}
+
+.card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--carwash-blue));
+    color: white;
+    border-radius: 12px 12px 0 0 !important;
+    border: none;
+    padding: 1rem 1.5rem;
+}
+
+.card-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Button Enhancements */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.5rem 1.2rem;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--carwash-blue));
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color), var(--carwash-green));
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--warning-color), var(--lempira-gold));
+    color: #333;
+}
+
+/* Form Enhancements */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--carwash-blue);
+    box-shadow: 0 0 0 0.2rem rgba(30, 144, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+/* Dashboard Metrics Cards */
+.card.bg-primary, .card.bg-success, .card.bg-info, .card.bg-warning {
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+}
+
+.card.bg-primary::before,
+.card.bg-success::before,
+.card.bg-info::before,
+.card.bg-warning::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+    pointer-events: none;
+}
+
+/* Table Enhancements */
+.table {
+    border-radius: 12px;
+    overflow: hidden;
+    background: white;
+}
+
+.table thead th {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: none;
+    font-weight: 600;
+    color: #495057;
+    padding: 1rem;
+}
+
+.table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(30, 144, 255, 0.05);
+    transform: scale(1.01);
+}
+
+.table td {
+    padding: 1rem;
+    border-color: #f1f3f4;
+    vertical-align: middle;
+}
+
+/* Product/Service Cards */
+.product-card, .service-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.product-card:hover, .service-card:hover {
+    border-color: var(--carwash-blue);
+    box-shadow: 0 6px 20px rgba(30, 144, 255, 0.15);
+    transform: translateY(-3px);
+}
+
+.product-card.selected, .service-card.selected {
+    border-color: var(--success-color);
+    background-color: rgba(40, 167, 69, 0.05);
+}
+
+/* Badge Enhancements */
+.badge {
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+.badge.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--carwash-blue)) !important;
+}
+
+.badge.bg-success {
+    background: linear-gradient(135deg, var(--success-color), var(--carwash-green)) !important;
+}
+
+/* Timeline for Appointments */
+.timeline-item {
+    position: relative;
+    padding-left: 0;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -15px;
+    top: 20px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--carwash-blue);
+    border: 3px solid white;
+    box-shadow: 0 0 0 3px var(--carwash-blue);
+}
+
+.timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: -9px;
+    top: 32px;
+    width: 2px;
+    height: calc(100% - 12px);
+    background: linear-gradient(to bottom, var(--carwash-blue), transparent);
+}
+
+/* Cash Register Styling */
+.cash-input {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.cash-input:focus {
+    background-color: rgba(30, 144, 255, 0.1);
+}
+
+/* Currency Display */
+.currency {
+    font-weight: bold;
+    color: var(--success-color);
+}
+
+.lempira-symbol::before {
+    content: 'L ';
+    font-weight: bold;
+    color: var(--lempira-gold);
+}
+
+/* Search Enhancements */
+.search-container {
+    position: relative;
+}
+
+.search-container::before {
+    content: '\f002';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    z-index: 10;
+}
+
+.search-container input {
+    padding-left: 3rem;
+}
+
+/* Modal Enhancements */
+.modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--carwash-blue));
+    color: white;
+    border-radius: 15px 15px 0 0;
+    border: none;
+}
+
+.modal-title {
+    font-weight: 600;
+}
+
+/* Alert Enhancements */
+.alert {
+    border: none;
+    border-radius: 10px;
+    border-left: 4px solid;
+    padding: 1rem 1.5rem;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(50, 205, 50, 0.05));
+    border-left-color: var(--success-color);
+}
+
+.alert-info {
+    background: linear-gradient(135deg, rgba(23, 162, 184, 0.1), rgba(30, 144, 255, 0.05));
+    border-left-color: var(--info-color);
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 215, 0, 0.05));
+    border-left-color: var(--warning-color);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(255, 0, 0, 0.05));
+    border-left-color: var(--danger-color);
+}
+
+/* Loading Animations */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(30, 144, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--carwash-blue);
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Footer Styling */
+footer {
+    background: linear-gradient(135deg, var(--dark-color), #495057);
+    color: white;
+    margin-top: 4rem;
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .table-responsive {
+        border-radius: 8px;
+    }
+    
+    .btn {
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .modal-dialog {
+        margin: 1rem;
+    }
+    
+    .timeline-item::before,
+    .timeline-item::after {
+        display: none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    .btn {
+        display: none;
+    }
+}
+
+/* WhatsApp Integration Styling */
+.whatsapp-green {
+    background-color: #25d366 !important;
+    border-color: #25d366 !important;
+}
+
+.whatsapp-green:hover {
+    background-color: #20b358 !important;
+    border-color: #20b358 !important;
+}
+
+/* Barcode Scanner Styling */
+.barcode-scanner {
+    border: 2px dashed var(--carwash-blue);
+    background: rgba(30, 144, 255, 0.05);
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.barcode-scanner:hover {
+    border-color: var(--success-color);
+    background: rgba(40, 167, 69, 0.05);
+}
+
+.barcode-scanner.active {
+    border-color: var(--success-color);
+    background: rgba(40, 167, 69, 0.1);
+}
+
+/* Customer Info Cards */
+.customer-card {
+    background: linear-gradient(135deg, rgba(30, 144, 255, 0.05), rgba(255, 255, 255, 0.8));
+    border-left: 4px solid var(--carwash-blue);
+}
+
+.customer-frequent {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 255, 255, 0.8));
+    border-left: 4px solid var(--lempira-gold);
+}
+
+/* Inventory Status Indicators */
+.stock-high {
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+.stock-medium {
+    color: var(--warning-color);
+    font-weight: bold;
+}
+
+.stock-low {
+    color: var(--danger-color);
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* Service Category Colors */
+.category-lavado {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+}
+
+.category-accesorio {
+    background: linear-gradient(135deg, #6f42c1, #5a2d91);
+    color: white;
+}
+
+.category-servicio {
+    background: linear-gradient(135deg, #fd7e14, #e8590c);
+    color: white;
+}
+
+/* Quick Action Buttons */
+.quick-action {
+    background: white;
+    border: 2px solid var(--carwash-blue);
+    color: var(--carwash-blue);
+    padding: 1.5rem;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    display: block;
+    font-weight: 600;
+}
+
+.quick-action:hover {
+    background: var(--carwash-blue);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(30, 144, 255, 0.3);
+}
+
+.quick-action i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Utility Classes */
+.text-carwash-blue {
+    color: var(--carwash-blue) !important;
+}
+
+.text-carwash-green {
+    color: var(--carwash-green) !important;
+}
+
+.text-lempira-gold {
+    color: var(--lempira-gold) !important;
+}
+
+.bg-carwash-blue {
+    background-color: var(--carwash-blue) !important;
+}
+
+.bg-carwash-green {
+    background-color: var(--carwash-green) !important;
+}
+
+.bg-lempira-gold {
+    background-color: var(--lempira-gold) !important;
+}
+
+.border-carwash-blue {
+    border-color: var(--carwash-blue) !important;
+}
+
+.shadow-carwash {
+    box-shadow: 0 4px 20px rgba(30, 144, 255, 0.15) !important;
+}
+
+.rounded-carwash {
+    border-radius: 12px !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--carwash-blue);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #0056b3;
+}
