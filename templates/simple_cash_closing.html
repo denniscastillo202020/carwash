@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Cierre de Caja - Car Wash Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-calculator"></i> Cierre de Caja - {{ today.strftime('%d/%m/%Y') }}
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Resumen de Ventas -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-chart-line"></i> Resumen de Ventas del Día</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-6">
+                            <div class="bg-success text-white p-3 rounded mb-3">
+                                <h6>Efectivo</h6>
+                                <h4>{{ format_lempiras(cash_sales) }}</h4>
+                                <small>{{ cash_invoices }} facturas</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="bg-info text-white p-3 rounded mb-3">
+                                <h6>Tarjeta</h6>
+                                <h4>{{ format_lempiras(card_sales) }}</h4>
+                                <small>{{ card_invoices }} facturas</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-dark text-white p-3 rounded text-center">
+                        <h5>Total del Día</h5>
+                        <h3>{{ format_lempiras(total_sales) }}</h3>
+                        <small>{{ total_invoices }} facturas</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conteo de Efectivo -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5><i class="fas fa-money-bill-wave"></i> Conteo de Efectivo en Caja</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('perform_cash_closing_route') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="expected_amount" value="{{ cash_sales }}"/>
+                        
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <label class="form-label">L500</label>
+                                <input type="number" class="form-control cash-closing-input" name="bills_500" value="{{ current_cash.bills_500 or 0 }}" min="0" data-value="500">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label">L200</label>
+                                <input type="number" class="form-control cash-closing-input" name="bills_200" value="{{ current_cash.bills_200 or 0 }}" min="0" data-value="200">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label">L100</label>
+                                <input type="number" class="form-control cash-closing-input" name="bills_100" value="{{ current_cash.bills_100 or 0 }}" min="0" data-value="100">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label">L50</label>
+                                <input type="number" class="form-control cash-closing-input" name="bills_50" value="{{ current_cash.bills_50 or 0 }}" min="0" data-value="50">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label">L20</label>
+                                <input type="number" class="form-control cash-closing-input" name="bills_20" value="{{ current_cash.bills_20 or 0 }}" min="0" data-value="20">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label">L10</label>
+                                <input type="number" class="form-control cash-closing-input" name="bills_10" value="{{ current_cash.bills_10 or 0 }}" min="0" data-value="10">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label">L5</label>
+                                <input type="number" class="form-control cash-closing-input" name="bills_5" value="{{ current_cash.bills_5 or 0 }}" min="0" data-value="5">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label">L2</label>
+                                <input type="number" class="form-control cash-closing-input" name="bills_2" value="{{ current_cash.bills_2 or 0 }}" min="0" data-value="2">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label">L1</label>
+                                <input type="number" class="form-control cash-closing-input" name="bills_1" value="{{ current_cash.bills_1 or 0 }}" min="0" data-value="1">
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Totales -->
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <div class="bg-light p-2 rounded">
+                                    <small>Esperado</small>
+                                    <div class="h5 text-primary">{{ format_lempiras(cash_sales) }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="bg-light p-2 rounded">
+                                    <small>Contado</small>
+                                    <div class="h5" id="actualAmount">{{ format_lempiras(0) }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="bg-light p-2 rounded">
+                                    <small>Diferencia</small>
+                                    <div class="h5" id="difference">{{ format_lempiras(0) }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-3">
+                            <label class="form-label">Notas del Cierre</label>
+                            <textarea class="form-control" name="notes" rows="3" placeholder="Observaciones o comentarios del cierre..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 btn-lg">
+                            <i class="fas fa-check"></i> Realizar Cierre de Caja
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if existing_closing %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h5><i class="fas fa-info-circle"></i> Cierre Ya Realizado</h5>
+                <p><strong>Fecha:</strong> {{ existing_closing.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                <p><strong>Efectivo esperado:</strong> {{ format_lempiras(existing_closing.expected_amount) }}</p>
+                <p><strong>Efectivo contado:</strong> {{ format_lempiras(existing_closing.actual_amount) }}</p>
+                <p><strong>Diferencia:</strong> {{ format_lempiras(existing_closing.difference) }}</p>
+                {% if existing_closing.notes %}
+                <p><strong>Notas:</strong> {{ existing_closing.notes }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const expectedAmount = {{ cash_sales }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar listeners a todos los inputs
+    document.querySelectorAll('.cash-closing-input').forEach(input => {
+        input.addEventListener('input', calculateClosingTotals);
+    });
+    
+    calculateClosingTotals();
+});
+
+function calculateClosingTotals() {
+    let actualTotal = 0;
+    
+    // Calcular total contado
+    document.querySelectorAll('.cash-closing-input').forEach(input => {
+        const quantity = parseInt(input.value) || 0;
+        const value = parseFloat(input.dataset.value) || 0;
+        actualTotal += quantity * value;
+    });
+    
+    // Actualizar displays
+    document.getElementById('actualAmount').textContent = `L ${actualTotal.toFixed(2)}`;
+    
+    const difference = actualTotal - expectedAmount;
+    const diffElement = document.getElementById('difference');
+    diffElement.textContent = `L ${difference.toFixed(2)}`;
+    
+    // Cambiar color según la diferencia
+    if (difference === 0) {
+        diffElement.className = 'h5 text-success';
+    } else if (difference > 0) {
+        diffElement.className = 'h5 text-warning';
+    } else {
+        diffElement.className = 'h5 text-danger';
+    }
+}
+</script>
+{% endblock %}

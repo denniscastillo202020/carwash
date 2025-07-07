@@ -349,57 +349,139 @@ def cash_closing():
     today = datetime.now().date()
     existing_closing = CashClosing.query.filter_by(closing_date=today).first()
     
-    # Calculate today's sales
+    # Calculate today's sales by payment method
     today_start = datetime.combine(today, datetime.min.time())
     today_end = datetime.combine(today, datetime.max.time())
     
-    today_sales = db.session.query(func.sum(Invoice.total_amount)).filter(
+    # Cash sales
+    cash_sales = db.session.query(func.sum(Invoice.total_amount)).filter(
         Invoice.created_at.between(today_start, today_end),
         Invoice.payment_method == 'efectivo'
     ).scalar() or 0.0
     
-    # Get cash entries for today
+    cash_invoices = Invoice.query.filter(
+        Invoice.created_at.between(today_start, today_end),
+        Invoice.payment_method == 'efectivo'
+    ).count()
+    
+    # Card sales
+    card_sales = db.session.query(func.sum(Invoice.total_amount)).filter(
+        Invoice.created_at.between(today_start, today_end),
+        Invoice.payment_method == 'tarjeta'
+    ).scalar() or 0.0
+    
+    card_invoices = Invoice.query.filter(
+        Invoice.created_at.between(today_start, today_end),
+        Invoice.payment_method == 'tarjeta'
+    ).count()
+    
+    # Total sales
+    total_sales = cash_sales + card_sales
+    total_invoices = cash_invoices + card_invoices
+    
+    # Get current cash total from all cash entries today
     cash_entries = CashRegisterEntry.query.join(Invoice).filter(
         Invoice.created_at.between(today_start, today_end)
     ).all()
     
-    return render_template('cash_register.html', 
-                         closing_mode=True,
+    # Sum up all cash denominations
+    current_cash = {
+        'bills_500': sum(entry.bills_500 for entry in cash_entries),
+        'bills_200': sum(entry.bills_200 for entry in cash_entries),
+        'bills_100': sum(entry.bills_100 for entry in cash_entries),
+        'bills_50': sum(entry.bills_50 for entry in cash_entries),
+        'bills_20': sum(entry.bills_20 for entry in cash_entries),
+        'bills_10': sum(entry.bills_10 for entry in cash_entries),
+        'bills_5': sum(entry.bills_5 for entry in cash_entries),
+        'bills_2': sum(entry.bills_2 for entry in cash_entries),
+        'bills_1': sum(entry.bills_1 for entry in cash_entries),
+    }
+    
+    # Create a simple object to access in template
+    class CashSummary:
+        def __init__(self, data):
+            for key, value in data.items():
+                setattr(self, key, value)
+    
+    current_cash_obj = CashSummary(current_cash)
+    
+    return render_template('simple_cash_closing.html',
+                         today=today,
                          existing_closing=existing_closing,
-                         today_sales=today_sales,
-                         cash_entries=cash_entries,
-                         format_lempiras=format_lempiras)
+                         cash_sales=cash_sales,
+                         cash_invoices=cash_invoices,
+                         card_sales=card_sales,
+                         card_invoices=card_invoices,
+                         total_sales=total_sales,
+                         total_invoices=total_invoices,
+                         current_cash=current_cash_obj)
 
 @app.route('/perform_cash_closing', methods=['POST'])
 def perform_cash_closing_route():
     """Perform daily cash closing"""
-    form = CashRegisterForm()
-    
-    if form.validate_on_submit():
+    try:
+        today = datetime.now().date()
+        
+        # Check if closing already exists
+        existing_closing = CashClosing.query.filter_by(closing_date=today).first()
+        if existing_closing:
+            flash('Ya se realizó el cierre de caja para hoy', 'warning')
+            return redirect(url_for('cash_closing'))
+        
+        # Get cash data from form
         cash_data = {
-            'total_bills_1000': form.bills_1000.data,
-            'total_bills_500': form.bills_500.data,
-            'total_bills_200': form.bills_200.data,
-            'total_bills_100': form.bills_100.data,
-            'total_bills_50': form.bills_50.data,
-            'total_bills_20': form.bills_20.data,
-            'total_bills_10': form.bills_10.data,
-            'total_bills_5': form.bills_5.data,
-            'total_bills_2': form.bills_2.data,
-            'total_bills_1': form.bills_1.data,
-            'total_coins_50c': form.coins_50c.data,
-            'total_coins_20c': form.coins_20c.data,
-            'total_coins_10c': form.coins_10c.data,
-            'total_coins_5c': form.coins_5c.data,
+            'total_bills_500': int(request.form.get('bills_500', 0)),
+            'total_bills_200': int(request.form.get('bills_200', 0)),
+            'total_bills_100': int(request.form.get('bills_100', 0)),
+            'total_bills_50': int(request.form.get('bills_50', 0)),
+            'total_bills_20': int(request.form.get('bills_20', 0)),
+            'total_bills_10': int(request.form.get('bills_10', 0)),
+            'total_bills_5': int(request.form.get('bills_5', 0)),
+            'total_bills_2': int(request.form.get('bills_2', 0)),
+            'total_bills_1': int(request.form.get('bills_1', 0)),
         }
         
+        expected_amount = float(request.form.get('expected_amount', 0))
         notes = request.form.get('notes', '')
-        success, result = perform_cash_closing(cash_data, notes)
         
-        if success:
-            flash(f'Cierre de caja realizado. Diferencia: {format_lempiras(result.difference)}', 'success')
+        # Calculate actual amount
+        actual_amount = (
+            cash_data['total_bills_500'] * 500 +
+            cash_data['total_bills_200'] * 200 +
+            cash_data['total_bills_100'] * 100 +
+            cash_data['total_bills_50'] * 50 +
+            cash_data['total_bills_20'] * 20 +
+            cash_data['total_bills_10'] * 10 +
+            cash_data['total_bills_5'] * 5 +
+            cash_data['total_bills_2'] * 2 +
+            cash_data['total_bills_1'] * 1
+        )
+        
+        difference = actual_amount - expected_amount
+        
+        # Create cash closing record
+        cash_closing = CashClosing(
+            closing_date=today,
+            expected_amount=expected_amount,
+            actual_amount=actual_amount,
+            difference=difference,
+            notes=notes,
+            **cash_data
+        )
+        
+        db.session.add(cash_closing)
+        db.session.commit()
+        
+        if difference == 0:
+            flash('Cierre de caja perfecto. Sin diferencias.', 'success')
+        elif difference > 0:
+            flash(f'Cierre realizado. Sobrante: {format_lempiras(difference)}', 'warning')
         else:
-            flash(result, 'error')
+            flash(f'Cierre realizado. Faltante: {format_lempiras(abs(difference))}', 'danger')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al realizar cierre: {str(e)}', 'error')
     
     return redirect(url_for('cash_closing'))
 
