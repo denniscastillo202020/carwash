@@ -1,8 +1,14 @@
-# Car Wash Manager - Sistema de Gestión
+# Car Wash Peña Blanca - Sistema de Gestión
 
 ## Overview
 
-Car Wash Manager is a comprehensive Point of Sale (POS) and Customer Relationship Management (CRM) system designed specifically for car wash businesses in Honduras. The system handles customer management, inventory tracking, service scheduling, invoicing, and cash register operations with support for Lempiras currency and WhatsApp integration for appointments.
+Car Wash Peña Blanca is a comprehensive Point of Sale (POS) and Customer Relationship Management (CRM) system designed specifically for the car wash business in Peña Blanca, Cortés, Honduras. The system handles customer management, inventory tracking, service scheduling, invoicing, and cash register operations with support for Lempiras currency and WhatsApp integration for appointments.
+
+**Business Information:**
+- Name: Car Wash Peña Blanca  
+- Phone: 9464-8987
+- Location: Peña Blanca, Cortés, Honduras
+- Logo: Integrated custom logo with red Mercedes-Benz car and soap bubbles design
 
 ## System Architecture
 
