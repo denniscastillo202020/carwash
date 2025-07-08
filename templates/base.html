@@ -97,15 +97,7 @@
     <!-- Sidebar Backdrop -->
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-    <!-- Promotional Banner -->
-    <div class="promo-banner">
-        <div class="promo-content">
-            <span class="promo-item">🚗 Lavado Completo + Encerado por solo L 200</span>
-            <span class="promo-item">⭐ Descuento del 15% en servicios premium</span>
-            <span class="promo-item">📱 Agenda tu cita: 97164446</span>
-            <span class="promo-item">🎉 Promociones especiales todo el mes</span>
-        </div>
-    </div>
+
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -148,10 +140,23 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Bottom Promotional Banner -->
+    <div class="bottom-promo-banner" id="bottomPromoBanner">
+        <div class="promo-content">
+            <span class="promo-item" id="promoItem1">🚗 Lavado Completo + Encerado por solo L 200</span>
+            <span class="promo-item" id="promoItem2">⭐ Descuento del 15% en servicios premium</span>
+            <span class="promo-item" id="promoItem3">📱 Agenda tu cita: 97164446</span>
+            <span class="promo-item" id="promoItem4">🎉 Promociones especiales todo el mes</span>
+        </div>
+        <button class="promo-edit-btn" onclick="openPromoEditor()" title="Editar promociones">
+            <i class="fas fa-edit"></i>
+        </button>
+    </div>
+
     <!-- Footer -->
-    <footer class="text-center py-3 mt-5" style="background: var(--light-gray); border-top: 1px solid var(--border-color);">
+    <footer class="text-center py-2" style="background: var(--primary-color); color: white;">
         <div class="container">
-            <p class="mb-0 text-muted">&copy; 2025 Car Wash Peña Blanca - Tel: 9464-8987</p>
+            <p class="mb-0">&copy; 2025 Car Wash Peña Blanca - Tel: 9464-8987</p>
         </div>
     </footer>
 
@@ -160,15 +165,141 @@
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     
+    <!-- Promo Editor Modal -->
+    <div class="modal fade" id="promoEditorModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Promociones</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Promoción 1</label>
+                        <input type="text" class="form-control" id="editPromo1" maxlength="100">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Promoción 2</label>
+                        <input type="text" class="form-control" id="editPromo2" maxlength="100">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Promoción 3</label>
+                        <input type="text" class="form-control" id="editPromo3" maxlength="100">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Promoción 4</label>
+                        <input type="text" class="form-control" id="editPromo4" maxlength="100">
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="showPromoBanner">
+                        <label class="form-check-label" for="showPromoBanner">
+                            Mostrar banner promocional
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="savePromoChanges()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-    // Promotional banner auto-scroll
+    // Promotional banner management
     document.addEventListener('DOMContentLoaded', function() {
-        const promoContent = document.querySelector('.promo-content');
+        loadPromoSettings();
+        initBottomPromoBanner();
+    });
+
+    function initBottomPromoBanner() {
+        const promoContent = document.querySelector('.bottom-promo-banner .promo-content');
         if (promoContent) {
             // Duplicate content for seamless loop
             promoContent.innerHTML += promoContent.innerHTML;
         }
-    });
+    }
+
+    function openPromoEditor() {
+        // Load current values
+        document.getElementById('editPromo1').value = localStorage.getItem('promo1') || '🚗 Lavado Completo + Encerado por solo L 200';
+        document.getElementById('editPromo2').value = localStorage.getItem('promo2') || '⭐ Descuento del 15% en servicios premium';
+        document.getElementById('editPromo3').value = localStorage.getItem('promo3') || '📱 Agenda tu cita: 97164446';
+        document.getElementById('editPromo4').value = localStorage.getItem('promo4') || '🎉 Promociones especiales todo el mes';
+        document.getElementById('showPromoBanner').checked = localStorage.getItem('showPromoBanner') !== 'false';
+        
+        new bootstrap.Modal(document.getElementById('promoEditorModal')).show();
+    }
+
+    function savePromoChanges() {
+        const promo1 = document.getElementById('editPromo1').value.trim();
+        const promo2 = document.getElementById('editPromo2').value.trim();
+        const promo3 = document.getElementById('editPromo3').value.trim();
+        const promo4 = document.getElementById('editPromo4').value.trim();
+        const showBanner = document.getElementById('showPromoBanner').checked;
+
+        // Save to localStorage
+        localStorage.setItem('promo1', promo1);
+        localStorage.setItem('promo2', promo2);
+        localStorage.setItem('promo3', promo3);
+        localStorage.setItem('promo4', promo4);
+        localStorage.setItem('showPromoBanner', showBanner);
+
+        // Update display
+        updatePromoDisplay();
+        
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('promoEditorModal')).hide();
+        
+        // Show success message
+        showNotification('Promociones actualizadas exitosamente', 'success');
+    }
+
+    function updatePromoDisplay() {
+        const promo1 = localStorage.getItem('promo1') || '🚗 Lavado Completo + Encerado por solo L 200';
+        const promo2 = localStorage.getItem('promo2') || '⭐ Descuento del 15% en servicios premium';
+        const promo3 = localStorage.getItem('promo3') || '📱 Agenda tu cita: 97164446';
+        const promo4 = localStorage.getItem('promo4') || '🎉 Promociones especiales todo el mes';
+        const showBanner = localStorage.getItem('showPromoBanner') !== 'false';
+
+        const banner = document.getElementById('bottomPromoBanner');
+        if (showBanner) {
+            banner.style.display = 'block';
+            document.getElementById('promoItem1').textContent = promo1;
+            document.getElementById('promoItem2').textContent = promo2;
+            document.getElementById('promoItem3').textContent = promo3;
+            document.getElementById('promoItem4').textContent = promo4;
+            
+            // Reinitialize animation
+            initBottomPromoBanner();
+        } else {
+            banner.style.display = 'none';
+        }
+    }
+
+    function loadPromoSettings() {
+        updatePromoDisplay();
+    }
+
+    // Enhanced notification system for promo changes
+    function showNotification(message, type = 'info', duration = 3000) {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-dismiss after duration
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, duration);
+    }
     </script>
     
     {% block scripts %}{% endblock %}

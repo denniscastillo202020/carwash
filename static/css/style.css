@@ -1120,21 +1120,24 @@ footer {
 }
 
 
-/* Promotional Banner */
-.promo-banner {
+/* Bottom Promotional Banner */
+.bottom-promo-banner {
     position: fixed;
-    top: 80px;
+    bottom: 0;
     left: 0;
     width: 100%;
-    height: 40px;
+    height: 35px;
     background: linear-gradient(90deg, #000000, #333333, #000000);
     color: white;
     z-index: 999;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
 }
 
-.promo-content {
+.bottom-promo-banner .promo-content {
+    flex: 1;
     display: flex;
     align-items: center;
     height: 100%;
@@ -1142,11 +1145,33 @@ footer {
     white-space: nowrap;
 }
 
-.promo-item {
+.bottom-promo-banner .promo-item {
     display: inline-block;
     padding: 0 3rem;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
+}
+
+.promo-edit-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 25px;
+    height: 25px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 10px;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.promo-edit-btn:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.3);
 }
 
 @keyframes scroll-left {
@@ -1154,12 +1179,17 @@ footer {
     100% { transform: translateX(-100%); }
 }
 
-/* Adjust main content to account for banner */
-.main-title {
-    margin-top: 120px;
+/* Adjust body padding for bottom banner */
+body {
+    padding-bottom: 35px;
 }
 
-body.sidebar-open .promo-banner {
+body.sidebar-open .bottom-promo-banner {
     left: 280px;
     width: calc(100% - 280px);
+}
+
+/* Adjust main title back to normal */
+.main-title {
+    margin-top: 80px;
 }
