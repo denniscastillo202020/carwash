@@ -269,6 +269,157 @@ body.sidebar-open {
     font-weight: 400;
 }
 
+/* Print Styles - Only show invoice content */
+@media print {
+    /* Hide all navigation and UI elements */
+    .sidebar,
+    .sidebar-toggle,
+    .sidebar-backdrop,
+    .watermark-logo,
+    .ribbon-message,
+    .main-title,
+    .d-print-none,
+    nav,
+    .navbar,
+    .btn,
+    button,
+    .alert,
+    .card-header,
+    .floating-message,
+    .background-upload-area {
+        display: none !important;
+    }
+    
+    /* Reset body margins for print */
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        font-family: 'Courier New', monospace !important;
+        font-size: 12px !important;
+        line-height: 1.3 !important;
+    }
+    
+    /* Print-specific invoice styling */
+    .invoice-thermal {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-family: 'Courier New', monospace !important;
+        font-size: 12px !important;
+        color: #000 !important;
+        background: white !important;
+    }
+    
+    .invoice-thermal img {
+        max-width: 60px !important;
+        height: auto !important;
+        margin-bottom: 5px !important;
+    }
+    
+    .invoice-thermal h5 {
+        font-size: 14px !important;
+        font-weight: bold !important;
+        margin: 0 !important;
+    }
+    
+    .invoice-thermal small {
+        font-size: 10px !important;
+    }
+    
+    .invoice-thermal .text-center {
+        text-align: center !important;
+    }
+    
+    /* Force print layout */
+    .container,
+    .container-fluid {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Page break settings */
+    .invoice-thermal {
+        page-break-inside: avoid;
+    }
+}
+
+/* Invoice Styling Improvements */
+.invoice-thermal {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.invoice-thermal h5 {
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 8px;
+}
+
+.invoice-thermal small {
+    color: #666;
+    font-size: 11px;
+}
+
+/* Combined Invoice + Payment Form */
+.invoice-payment-form {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.payment-section {
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    padding: 1.5rem;
+}
+
+.payment-section h5 {
+    color: #495057;
+    margin-bottom: 1rem;
+}
+
+.denomination-input {
+    width: 80px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.cash-total {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #28a745;
+}
+
+.invoice-summary {
+    background: #e9ecef;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.invoice-summary h6 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.invoice-total {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #007bff;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
     body.sidebar-open {
@@ -286,6 +437,16 @@ body.sidebar-open {
     
     .main-title {
         padding: 2rem 1rem 1.5rem;
+    }
+    
+    .invoice-thermal {
+        margin: 10px;
+        padding: 15px;
+        font-size: 12px;
+    }
+    
+    .denomination-input {
+        width: 60px;
     }
 }
 

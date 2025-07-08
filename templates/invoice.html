@@ -6,21 +6,23 @@
 <div class="row">
     <div class="col-12">
         <h1 class="mb-4">
-            <i class="fas fa-file-invoice"></i> Sistema de Facturación
+            <i class="fas fa-file-invoice"></i> Sistema de Facturación y Pago
         </h1>
     </div>
 </div>
 
 <form action="{{ url_for('create_invoice') }}" method="POST" id="invoiceForm">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-    <div class="row">
-        <!-- Customer Information -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-user"></i> Información del Cliente</h5>
-                </div>
-                <div class="card-body">
+    
+    <div class="invoice-payment-form">
+        <div class="row">
+            <!-- Customer Information -->
+            <div class="col-md-4">
+                <div class="card border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-user"></i> Información del Cliente</h5>
+                    </div>
+                    <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Teléfono *</label>
                         <input type="tel" class="form-control" name="customer_phone" id="customerPhone" 
@@ -166,6 +168,112 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Payment Section -->
+    <div class="col-12 mt-4">
+        <div class="payment-section" id="paymentSection">
+            <h5><i class="fas fa-money-bill-wave"></i> Pago en Efectivo - Denominaciones</h5>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="invoice-summary">
+                        <h6>Resumen de Factura</h6>
+                        <div class="d-flex justify-content-between">
+                            <span>Total Items:</span>
+                            <span id="totalItems">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Total:</span>
+                            <strong class="invoice-total" id="totalInvoice">L 0.00</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-6">
+                            <h6>Billetes</h6>
+                            <div class="mb-2">
+                                <label class="form-label">L500</label>
+                                <input type="number" class="form-control denomination-input" name="bills_500" value="0" min="0">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">L200</label>
+                                <input type="number" class="form-control denomination-input" name="bills_200" value="0" min="0">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">L100</label>
+                                <input type="number" class="form-control denomination-input" name="bills_100" value="0" min="0">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">L50</label>
+                                <input type="number" class="form-control denomination-input" name="bills_50" value="0" min="0">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">L20</label>
+                                <input type="number" class="form-control denomination-input" name="bills_20" value="0" min="0">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">L10</label>
+                                <input type="number" class="form-control denomination-input" name="bills_10" value="0" min="0">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">L5</label>
+                                <input type="number" class="form-control denomination-input" name="bills_5" value="0" min="0">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">L2</label>
+                                <input type="number" class="form-control denomination-input" name="bills_2" value="0" min="0">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">L1</label>
+                                <input type="number" class="form-control denomination-input" name="bills_1" value="0" min="0">
+                            </div>
+                        </div>
+                        
+                        <div class="col-6">
+                            <h6>Monedas</h6>
+                            <div class="mb-2">
+                                <label class="form-label">50c</label>
+                                <input type="number" class="form-control denomination-input" name="coins_50c" value="0" min="0">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">20c</label>
+                                <input type="number" class="form-control denomination-input" name="coins_20c" value="0" min="0">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">10c</label>
+                                <input type="number" class="form-control denomination-input" name="coins_10c" value="0" min="0">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">5c</label>
+                                <input type="number" class="form-control denomination-input" name="coins_5c" value="0" min="0">
+                            </div>
+                            
+                            <div class="mt-3 p-3 bg-light rounded">
+                                <div class="d-flex justify-content-between">
+                                    <span>Efectivo Recibido:</span>
+                                    <span class="cash-total" id="cashTotal">L 0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Cambio:</span>
+                                    <span class="text-success" id="changeAmount">L 0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-3">
+                <div class="col-12 text-center">
+                    <button type="button" class="btn btn-primary btn-lg px-5" onclick="processInvoiceWithPayment()">
+                        <i class="fas fa-receipt"></i> Generar Factura y Procesar Pago
+                    </button>
                 </div>
             </div>
         </div>
@@ -494,6 +602,7 @@ function proceedWithInvoice() {
 // Update button states
 function updateCreateButton() {
     updatePreviewButton();
+    updateInvoiceSummary();
 }
 
 function updatePreviewButton() {
@@ -504,5 +613,99 @@ function updatePreviewButton() {
         button.disabled = true;
     }
 }
+
+function updateInvoiceSummary() {
+    const totalItemsEl = document.getElementById('totalItems');
+    const totalInvoiceEl = document.getElementById('totalInvoice');
+    
+    if (totalItemsEl) {
+        const totalItems = selectedItems.reduce((sum, item) => sum + item.quantity, 0);
+        totalItemsEl.textContent = totalItems;
+    }
+    
+    if (totalInvoiceEl) {
+        totalInvoiceEl.textContent = `L ${totalAmount.toFixed(2)}`;
+    }
+    
+    updateCashCalculation();
+}
+
+function updateCashCalculation() {
+    const denominations = {
+        bills_500: 500,
+        bills_200: 200,
+        bills_100: 100,
+        bills_50: 50,
+        bills_20: 20,
+        bills_10: 10,
+        bills_5: 5,
+        bills_2: 2,
+        bills_1: 1,
+        coins_50c: 0.50,
+        coins_20c: 0.20,
+        coins_10c: 0.10,
+        coins_5c: 0.05
+    };
+    
+    let cashTotal = 0;
+    
+    Object.keys(denominations).forEach(key => {
+        const input = document.querySelector(`input[name="${key}"]`);
+        if (input) {
+            const count = parseInt(input.value) || 0;
+            cashTotal += count * denominations[key];
+        }
+    });
+    
+    const change = cashTotal - totalAmount;
+    
+    const cashTotalEl = document.getElementById('cashTotal');
+    const changeAmountEl = document.getElementById('changeAmount');
+    
+    if (cashTotalEl) {
+        cashTotalEl.textContent = `L ${cashTotal.toFixed(2)}`;
+    }
+    
+    if (changeAmountEl) {
+        changeAmountEl.textContent = `L ${change.toFixed(2)}`;
+        changeAmountEl.className = change >= 0 ? 'text-success' : 'text-danger';
+    }
+}
+
+function processInvoiceWithPayment() {
+    if (selectedItems.length === 0) {
+        alert('Debe seleccionar al menos un producto o servicio');
+        return;
+    }
+    
+    const customerName = document.getElementById('customerName').value;
+    const customerPhone = document.getElementById('customerPhone').value;
+    
+    if (!customerName || !customerPhone) {
+        alert('Nombre y teléfono del cliente son obligatorios');
+        return;
+    }
+    
+    const paymentMethod = document.querySelector('select[name="payment_method"]').value;
+    
+    if (paymentMethod === 'efectivo') {
+        const cashTotal = parseFloat(document.getElementById('cashTotal').textContent.replace('L ', ''));
+        if (cashTotal < totalAmount) {
+            alert('El efectivo recibido es insuficiente para cubrir el total de la factura');
+            return;
+        }
+    }
+    
+    // Submit the form
+    document.getElementById('invoiceForm').submit();
+}
+
+// Initialize denomination inputs
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners to denomination inputs
+    document.querySelectorAll('.denomination-input').forEach(input => {
+        input.addEventListener('input', updateCashCalculation);
+    });
+});
 </script>
 {% endblock %}
