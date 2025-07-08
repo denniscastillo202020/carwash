@@ -139,6 +139,11 @@ Car Wash Peña Blanca is a comprehensive Point of Sale (POS) and Customer Relati
 - July 08, 2025: Implemented manual inventory modification with edit product modal
 - July 08, 2025: Created product editing functionality with barcode auto-population
 - July 08, 2025: Added sticky notes with auto-save to localStorage and drag positioning
+- July 08, 2025: Successfully migrated from Replit Agent to standard Replit environment
+- July 08, 2025: Unified inventory system combining products and services in single interface
+- July 08, 2025: Added stock adjustment functionality with barcode scanning support
+- July 08, 2025: Replaced floating sticky notes with subtle promotional banner
+- July 08, 2025: PostgreSQL database configured for production deployment
 
 ## User Preferences
 
