@@ -11,169 +11,140 @@
     </div>
 </div>
 
-<!-- Tabs for Products and Services -->
-<ul class="nav nav-tabs" id="inventoryTabs" role="tablist">
-    <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab">
-            <i class="fas fa-box"></i> Productos
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="services-tab" data-bs-toggle="tab" data-bs-target="#services" type="button" role="tab">
-            <i class="fas fa-tools"></i> Servicios
-        </button>
-    </li>
-</ul>
-
-<div class="tab-content" id="inventoryTabContent">
-    <!-- Products Tab -->
-    <div class="tab-pane fade show active" id="products" role="tabpanel">
-        <div class="row mt-3">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5><i class="fas fa-list"></i> Lista de Productos</h5>
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                            <i class="fas fa-plus"></i> Agregar Producto
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <input type="text" class="form-control" id="productSearch" placeholder="Buscar productos...">
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-hover" id="productsTable">
-                                <thead>
-                                    <tr>
-                                        <th>Nombre</th>
-                                        <th>Código</th>
-                                        <th>Precio</th>
-                                        <th>Stock</th>
-                                        <th>Categoría</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for product in products %}
-                                    <tr>
-                                        <td>{{ product.name }}</td>
-                                        <td>{{ product.barcode or '-' }}</td>
-                                        <td>{{ format_lempiras(product.price) }}</td>
-                                        <td>
-                                            <span class="badge bg-{{ 'danger' if product.stock <= 5 else 'success' }}" style="color: white;">
-                                                {{ product.stock }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-secondary">{{ product.category }}</span>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-primary" onclick="editProduct({{ product.id }})">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+<!-- Unified Inventory Management -->
+<div class="row mt-3">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-list"></i> Inventario Completo</h5>
+                <div>
+                    <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                        <i class="fas fa-plus"></i> Producto
+                    </button>
+                    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                        <i class="fas fa-plus"></i> Servicio
+                    </button>
                 </div>
             </div>
-            
-            <div class="col-md-4">
-                <!-- Barcode Scanner -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5><i class="fas fa-barcode"></i> Scanner de Código</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <input type="text" class="form-control" id="barcodeInput" placeholder="Escanear código de barras" onchange="searchByBarcode()">
-                        </div>
-                        <div id="barcodeResult" class="alert alert-info d-none">
-                            <h6>Producto Encontrado:</h6>
-                            <div id="productInfo"></div>
-                            <div class="mt-3">
-                                <button class="btn btn-primary btn-sm" onclick="editFoundProduct()">
-                                    <i class="fas fa-edit"></i> Editar Producto
-                                </button>
-                            </div>
-                        </div>
-                        <div id="barcodeNotFound" class="alert alert-warning d-none">
-                            <h6>Producto No Encontrado</h6>
-                            <p>El código de barras no coincide con ningún producto.</p>
-                            <button class="btn btn-success btn-sm" onclick="createProductWithBarcode()">
-                                <i class="fas fa-plus"></i> Crear Producto
-                            </button>
-                        </div>
-                    </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="inventorySearch" placeholder="Buscar productos o servicios..." onkeyup="filterInventory()">
                 </div>
-                
-                <!-- Quick Stats -->
-                <div class="card mt-3">
-                    <div class="card-header">
-                        <h5><i class="fas fa-chart-bar"></i> Estadísticas</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <h4>{{ products|length }}</h4>
-                                <small>Total Productos</small>
-                            </div>
-                            <div class="col-6">
-                                <h4>{{ products|selectattr('stock', 'le', 5)|list|length }}</h4>
-                                <small>Stock Bajo</small>
-                            </div>
-                        </div>
-                    </div>
+                <div style="max-height: 600px; overflow-y: auto;">
+                    <table class="table table-hover" id="inventoryTable">
+                        <thead class="sticky-top bg-white">
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Nombre</th>
+                                <th>Código</th>
+                                <th>Precio</th>
+                                <th>Stock/Duración</th>
+                                <th>Categoría</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products %}
+                            <tr data-type="product" data-barcode="{{ product.barcode or '' }}" data-name="{{ product.name.lower() }}">
+                                <td><span class="badge bg-primary">Producto</span></td>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.barcode or '-' }}</td>
+                                <td>{{ format_lempiras(product.price) }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if product.stock <= 5 else 'success' }}" style="color: white;">
+                                        {{ product.stock }} unidades
+                                    </span>
+                                </td>
+                                <td><span class="badge bg-secondary">{{ product.category }}</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editItem('product', {{ product.id }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success" onclick="adjustStock({{ product.id }})">
+                                        <i class="fas fa-plus-minus"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% for service in services %}
+                            <tr data-type="service" data-name="{{ service.name.lower() }}">
+                                <td><span class="badge bg-info">Servicio</span></td>
+                                <td>{{ service.name }}</td>
+                                <td>-</td>
+                                <td>{{ format_lempiras(service.price) }}</td>
+                                <td><span class="badge bg-warning text-dark">{{ service.duration_minutes }} min</span></td>
+                                <td><span class="badge bg-secondary">{{ service.category }}</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="editItem('service', {{ service.id }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Services Tab -->
-    <div class="tab-pane fade" id="services" role="tabpanel">
-        <div class="row mt-3">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5><i class="fas fa-tools"></i> Tipos de Servicio</h5>
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addServiceModal">
-                            <i class="fas fa-plus"></i> Agregar Servicio
+    <div class="col-md-4">
+        <!-- Barcode Scanner -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-barcode"></i> Scanner de Código</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="barcodeInput" placeholder="Escanear código de barras" onchange="searchByBarcode()">
+                </div>
+                <div id="barcodeResult" class="alert alert-info d-none">
+                    <h6>Producto Encontrado:</h6>
+                    <div id="productInfo"></div>
+                    <div class="mt-3 d-grid gap-2">
+                        <button class="btn btn-success btn-sm" onclick="addStockFoundProduct()">
+                            <i class="fas fa-plus"></i> Agregar Stock
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="removeStockFoundProduct()">
+                            <i class="fas fa-minus"></i> Quitar Stock
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="editFoundProduct()">
+                            <i class="fas fa-edit"></i> Editar Producto
                         </button>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Nombre</th>
-                                        <th>Precio</th>
-                                        <th>Duración</th>
-                                        <th>Categoría</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for service in services %}
-                                    <tr>
-                                        <td>{{ service.name }}</td>
-                                        <td>{{ format_lempiras(service.price) }}</td>
-                                        <td>{{ service.duration_minutes }} min</td>
-                                        <td>
-                                            <span class="badge bg-info">{{ service.category }}</span>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-primary" onclick="editService({{ service.id }})">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                </div>
+                <div id="barcodeNotFound" class="alert alert-warning d-none">
+                    <h6>Producto No Encontrado</h6>
+                    <p>El código no existe en el inventario.</p>
+                    <div class="mt-3">
+                        <button class="btn btn-success btn-sm" onclick="createProductWithBarcode()">
+                            <i class="fas fa-plus"></i> Crear Producto
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Estadísticas</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4>{{ products|length }}</h4>
+                        <small>Productos</small>
+                    </div>
+                    <div class="col-6">
+                        <h4>{{ services|length }}</h4>
+                        <small>Servicios</small>
+                    </div>
+                </div>
+                <div class="row text-center mt-3">
+                    <div class="col-12">
+                        <h4 class="text-danger">{{ products|selectattr('stock', 'le', 5)|list|length }}</h4>
+                        <small>Stock Bajo</small>
                     </div>
                 </div>
             </div>
@@ -198,19 +169,19 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Código de Barras</label>
-                        <input type="text" class="form-control" name="barcode" id="barcode">
+                        <input type="text" class="form-control" name="barcode" id="barcodeModal">
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Precio (L) *</label>
-                                <input type="number" step="0.01" class="form-control" name="price" required>
+                                <input type="number" class="form-control" name="price" step="0.01" min="0" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Stock *</label>
-                                <input type="number" class="form-control" name="stock" required>
+                                <label class="form-label">Stock Inicial *</label>
+                                <input type="number" class="form-control" name="stock" min="0" required>
                             </div>
                         </div>
                     </div>
@@ -230,7 +201,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Producto</button>
                 </div>
             </form>
         </div>
@@ -256,13 +227,13 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Precio (L) *</label>
-                                <input type="number" step="0.01" class="form-control" name="price" required>
+                                <input type="number" class="form-control" name="price" step="0.01" min="0" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Duración (minutos) *</label>
-                                <input type="number" class="form-control" name="duration_minutes" required>
+                                <input type="number" class="form-control" name="duration_minutes" min="5" required>
                             </div>
                         </div>
                     </div>
@@ -282,62 +253,217 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">Guardar</button>
+                    <button type="submit" class="btn btn-info">Guardar Servicio</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
+<!-- Stock Adjustment Modal -->
+<div class="modal fade" id="stockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajustar Stock</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="stockProductInfo"></div>
+                <div class="row mt-3">
+                    <div class="col-6">
+                        <button class="btn btn-success w-100" onclick="adjustStockAction('add')">
+                            <i class="fas fa-plus"></i> Agregar
+                        </button>
+                        <input type="number" class="form-control mt-2" id="addAmount" placeholder="Cantidad" min="1" value="1">
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-warning w-100" onclick="adjustStockAction('remove')">
+                            <i class="fas fa-minus"></i> Quitar
+                        </button>
+                        <input type="number" class="form-control mt-2" id="removeAmount" placeholder="Cantidad" min="1" value="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-// Barcode scanner
-document.getElementById('barcodeInput').addEventListener('input', function() {
-    const barcode = this.value;
-    if (barcode.length >= 6) {
-        searchProduct(barcode);
-    }
-});
+let currentProductId = null;
+let foundProduct = null;
 
-function searchProduct(barcode) {
-    fetch(`/search_product?barcode=${barcode}`)
-        .then(response => response.json())
-        .then(data => {
-            const resultDiv = document.getElementById('barcodeResult');
-            const infoDiv = document.getElementById('productInfo');
-            
-            if (data.found) {
-                infoDiv.innerHTML = `
-                    <strong>${data.name}</strong><br>
-                    Precio: L ${data.price.toFixed(2)}<br>
-                    Stock: ${data.stock}
-                `;
-                resultDiv.classList.remove('d-none');
-                resultDiv.classList.remove('alert-warning');
-                resultDiv.classList.add('alert-success');
-            } else {
-                infoDiv.innerHTML = 'Producto no encontrado';
-                resultDiv.classList.remove('d-none');
-                resultDiv.classList.remove('alert-success');
-                resultDiv.classList.add('alert-warning');
-            }
-        });
-}
-
-// Product search
-document.getElementById('productSearch').addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    const rows = document.querySelectorAll('#productsTable tbody tr');
+// Filter inventory table
+function filterInventory() {
+    const searchTerm = document.getElementById('inventorySearch').value.toLowerCase();
+    const rows = document.querySelectorAll('#inventoryTable tbody tr');
     
     rows.forEach(row => {
+        const name = row.getAttribute('data-name') || '';
+        const barcode = row.getAttribute('data-barcode') || '';
         const text = row.textContent.toLowerCase();
-        if (text.includes(searchTerm)) {
+        
+        if (name.includes(searchTerm) || barcode.includes(searchTerm) || text.includes(searchTerm)) {
             row.style.display = '';
         } else {
             row.style.display = 'none';
         }
     });
-});
+}
+
+// Search by barcode
+function searchByBarcode() {
+    const barcode = document.getElementById('barcodeInput').value.trim();
+    if (!barcode) return;
+    
+    // Search in table
+    const rows = document.querySelectorAll('#inventoryTable tbody tr[data-type="product"]');
+    foundProduct = null;
+    
+    rows.forEach(row => {
+        if (row.getAttribute('data-barcode') === barcode) {
+            foundProduct = row;
+            return;
+        }
+    });
+    
+    if (foundProduct) {
+        showBarcodeResult(foundProduct);
+    } else {
+        showBarcodeNotFound();
+    }
+}
+
+function showBarcodeResult(productRow) {
+    const name = productRow.cells[1].textContent;
+    const price = productRow.cells[3].textContent;
+    const stock = productRow.cells[4].querySelector('span').textContent;
+    
+    document.getElementById('productInfo').innerHTML = `
+        <strong>${name}</strong><br>
+        Precio: ${price}<br>
+        Stock: ${stock}
+    `;
+    
+    document.getElementById('barcodeResult').classList.remove('d-none');
+    document.getElementById('barcodeNotFound').classList.add('d-none');
+}
+
+function showBarcodeNotFound() {
+    document.getElementById('barcodeResult').classList.add('d-none');
+    document.getElementById('barcodeNotFound').classList.remove('d-none');
+}
+
+function addStockFoundProduct() {
+    if (foundProduct) {
+        const productId = getProductIdFromRow(foundProduct);
+        adjustStock(productId);
+    }
+}
+
+function removeStockFoundProduct() {
+    if (foundProduct) {
+        const productId = getProductIdFromRow(foundProduct);
+        adjustStock(productId);
+    }
+}
+
+function editFoundProduct() {
+    if (foundProduct) {
+        const productId = getProductIdFromRow(foundProduct);
+        editItem('product', productId);
+    }
+}
+
+function createProductWithBarcode() {
+    const barcode = document.getElementById('barcodeInput').value.trim();
+    document.getElementById('barcodeModal').value = barcode;
+    
+    // Close barcode result and open modal
+    document.getElementById('barcodeNotFound').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('addProductModal')).show();
+}
+
+function getProductIdFromRow(row) {
+    // Extract product ID from edit button onclick
+    const editBtn = row.querySelector('button[onclick*="editItem"]');
+    const onclick = editBtn.getAttribute('onclick');
+    const match = onclick.match(/editItem\('product', (\d+)\)/);
+    return match ? match[1] : null;
+}
+
+function editItem(type, id) {
+    if (type === 'product') {
+        window.location.href = `/edit_product?id=${id}`;
+    } else if (type === 'service') {
+        window.location.href = `/edit_service?id=${id}`;
+    }
+}
+
+function adjustStock(productId) {
+    currentProductId = productId;
+    
+    // Find product info
+    const rows = document.querySelectorAll('#inventoryTable tbody tr[data-type="product"]');
+    let productRow = null;
+    
+    rows.forEach(row => {
+        if (getProductIdFromRow(row) === productId) {
+            productRow = row;
+        }
+    });
+    
+    if (productRow) {
+        const name = productRow.cells[1].textContent;
+        const currentStock = productRow.cells[4].querySelector('span').textContent;
+        
+        document.getElementById('stockProductInfo').innerHTML = `
+            <h6>${name}</h6>
+            <p>Stock actual: ${currentStock}</p>
+        `;
+        
+        new bootstrap.Modal(document.getElementById('stockModal')).show();
+    }
+}
+
+function adjustStockAction(action) {
+    if (!currentProductId) return;
+    
+    const amount = action === 'add' ? 
+        document.getElementById('addAmount').value : 
+        document.getElementById('removeAmount').value;
+    
+    if (!amount || amount <= 0) {
+        alert('Por favor ingrese una cantidad válida');
+        return;
+    }
+    
+    // Send AJAX request to adjust stock
+    fetch('/adjust_stock', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+        },
+        body: JSON.stringify({
+            product_id: currentProductId,
+            action: action,
+            amount: parseInt(amount)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'Error al ajustar stock');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al procesar la solicitud');
+    });
+}
 </script>
+
 {% endblock %}

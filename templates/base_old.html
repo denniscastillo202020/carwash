@@ -97,16 +97,6 @@
     <!-- Sidebar Backdrop -->
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-    <!-- Promotional Banner -->
-    <div class="promo-banner">
-        <div class="promo-content">
-            <span class="promo-item">🚗 Lavado Completo + Encerado por solo L 200</span>
-            <span class="promo-item">⭐ Descuento del 15% en servicios premium</span>
-            <span class="promo-item">📱 Agenda tu cita: 97164446</span>
-            <span class="promo-item">🎉 Promociones especiales todo el mes</span>
-        </div>
-    </div>
-
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -131,6 +121,16 @@
 
     <!-- Watermark Logo -->
     <div class="watermark-logo"></div>
+
+    <!-- Promotional Banner -->
+    <div class="promo-banner">
+        <div class="promo-content">
+            <span class="promo-item">🚗 Lavado Completo + Encerado por solo L 200</span>
+            <span class="promo-item">⭐ Descuento del 15% en servicios premium</span>
+            <span class="promo-item">📱 Agenda tu cita: 97164446</span>
+            <span class="promo-item">🎉 Promociones especiales todo el mes</span>
+        </div>
+    </div>
 
     <!-- Main Title Section -->
     <div class="main-title">
@@ -161,14 +161,79 @@
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     
     <script>
-    // Promotional banner auto-scroll
-    document.addEventListener('DOMContentLoaded', function() {
-        const promoContent = document.querySelector('.promo-content');
-        if (promoContent) {
-            // Duplicate content for seamless loop
-            promoContent.innerHTML += promoContent.innerHTML;
+    // Sticky Notes Management
+    let noteCounter = 3;
+    
+    function closeNote(noteId) {
+        const note = document.getElementById(noteId);
+        if (note) {
+            note.style.animation = 'fadeOut 0.3s ease-out forwards';
+            setTimeout(() => note.remove(), 300);
+        }
+    }
+    
+    function addNewNote() {
+        noteCounter++;
+        const notesContainer = document.querySelector('.notes-container');
+        const colors = ['#ffeb3b', '#4fc3f7', '#81c784', '#ff8a65', '#ba68c8'];
+        const rotations = ['-2deg', '1deg', '-1deg', '2deg', '-3deg'];
+        
+        const newNote = document.createElement('div');
+        newNote.className = 'sticky-note';
+        newNote.id = `note${noteCounter}`;
+        newNote.style.cssText = `
+            top: ${Math.random() * 200 + 20}px; 
+            right: ${Math.random() * 300 + 20}px;
+            background: ${colors[noteCounter % colors.length]};
+            transform: rotate(${rotations[noteCounter % rotations.length]});
+        `;
+        
+        newNote.innerHTML = \`
+            <div class="note-header">
+                <i class="fas fa-sticky-note"></i>
+                <button class="note-close" onclick="closeNote('note\${noteCounter}')">×</button>
+            </div>
+            <div class="note-content" contenteditable="true" data-note="note\${noteCounter}">
+                Nueva nota...
+            </div>
+        \`;
+        
+        notesContainer.appendChild(newNote);
+        
+        // Focus on the new note content
+        const contentArea = newNote.querySelector('.note-content');
+        contentArea.focus();
+        contentArea.select();
+    }
+    
+    // Auto-save note content
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('note-content')) {
+            const noteId = e.target.getAttribute('data-note');
+            localStorage.setItem(noteId, e.target.textContent);
         }
     });
+    
+    // Load saved notes on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.note-content').forEach(note => {
+            const noteId = note.getAttribute('data-note');
+            const savedContent = localStorage.getItem(noteId);
+            if (savedContent) {
+                note.textContent = savedContent;
+            }
+        });
+    });
+    
+    // Add fadeOut animation
+    const style = document.createElement('style');
+    style.textContent = \`
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.8); }
+        }
+    \`;
+    document.head.appendChild(style);
     </script>
     
     {% block scripts %}{% endblock %}
