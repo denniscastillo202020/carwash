@@ -193,10 +193,10 @@
     });
 
     function initBottomPromoBanner() {
+        // No scrolling - content stays static
         const promoContent = document.querySelector('.bottom-promo-banner .promo-content');
         if (promoContent) {
-            // Duplicate content for seamless loop
-            promoContent.innerHTML += promoContent.innerHTML;
+            // Keep original content only
         }
     }
 
