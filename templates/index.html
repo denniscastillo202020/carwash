@@ -87,7 +87,7 @@
             </div>
             <div class="card-body">
                 {% if low_stock_products %}
-                    <div class="table-responsive">
+                    <div class="table-container">
                         <table class="table table-sm">
                             <thead>
                                 <tr>
@@ -97,7 +97,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for product in low_stock_products %}
+                                {% for product in low_stock_products[:5] %}
                                 <tr>
                                     <td>{{ product.name }}</td>
                                     <td>
