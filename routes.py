@@ -109,6 +109,29 @@ def add_service():
     services = ServiceType.query.all()
     return render_template('inventory.html', products=products, services=services, form=form)
 
+@app.route('/edit_product', methods=['POST'])
+def edit_product():
+    """Edit existing product"""
+    try:
+        product_id = request.form.get('product_id')
+        product = Product.query.get_or_404(product_id)
+        
+        # Update product fields
+        product.name = request.form.get('name')
+        product.barcode = request.form.get('barcode') or None
+        product.price = float(request.form.get('price'))
+        product.stock = int(request.form.get('stock'))
+        product.category = request.form.get('category')
+        
+        db.session.commit()
+        flash('Producto actualizado exitosamente', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al actualizar producto: {str(e)}', 'error')
+        
+    return redirect(url_for('inventory'))
+
 @app.route('/customers')
 def customers():
     """Customer management (CRM)"""

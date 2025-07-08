@@ -133,6 +133,12 @@ Car Wash Peña Blanca is a comprehensive Point of Sale (POS) and Customer Relati
 - July 08, 2025: Combined invoice creation and payment denomination entry in single interface
 - July 08, 2025: Added comprehensive print-only CSS to hide UI elements during printing
 - July 08, 2025: Improved invoice typography with Inter font family for better readability
+- July 08, 2025: Replaced sliding ribbon messages with editable sticky notes system
+- July 08, 2025: Fixed stock color visibility in inventory (white text on colored background)
+- July 08, 2025: Added automatic barcode detection for product identification in inventory
+- July 08, 2025: Implemented manual inventory modification with edit product modal
+- July 08, 2025: Created product editing functionality with barcode auto-population
+- July 08, 2025: Added sticky notes with auto-save to localStorage and drag positioning
 
 ## User Preferences
 

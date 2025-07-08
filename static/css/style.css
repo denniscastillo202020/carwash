@@ -749,6 +749,101 @@ body.sidebar-open {
     padding-left: 3rem;
 }
 
+/* Sticky Notes System */
+.notes-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.sticky-note {
+    position: absolute;
+    width: 220px;
+    min-height: 120px;
+    background: #ffeb3b;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    pointer-events: all;
+    transform: rotate(-2deg);
+    transition: all 0.3s ease;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.sticky-note:nth-child(2) {
+    background: #4fc3f7;
+    transform: rotate(1deg);
+}
+
+.sticky-note:nth-child(3) {
+    background: #81c784;
+    transform: rotate(-1deg);
+}
+
+.sticky-note:hover {
+    transform: rotate(0deg) scale(1.05);
+    z-index: 1001;
+}
+
+.note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 8px 8px 0 0;
+}
+
+.note-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #666;
+    line-height: 1;
+}
+
+.note-close:hover {
+    color: #000;
+}
+
+.note-content {
+    padding: 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    min-height: 60px;
+    outline: none;
+    border: none;
+    resize: none;
+    background: transparent;
+    color: #333;
+}
+
+.add-note-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #000;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    z-index: 1002;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.add-note-btn:hover {
+    background: #333;
+    transform: scale(1.05);
+}
+
 /* Modal Enhancements */
 .modal-content {
     border: none;
