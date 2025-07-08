@@ -16,6 +16,7 @@ function initializeApp() {
     console.log('Car Wash Manager - Initializing...');
     
     // Initialize components
+    initializeSidebar();
     initializeNavigation();
     initializeModals();
     initializeFormValidation();
@@ -27,6 +28,49 @@ function initializeApp() {
     initializeBackgroundUpload();
     
     console.log('Car Wash Manager - Ready!');
+}
+
+// Sidebar Navigation
+function initializeSidebar() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    const body = document.body;
+    
+    if (!sidebarToggle || !sidebar || !backdrop) return;
+    
+    // Toggle sidebar
+    sidebarToggle.addEventListener('click', function() {
+        sidebar.classList.toggle('active');
+        backdrop.classList.toggle('active');
+        body.classList.toggle('sidebar-open');
+    });
+    
+    // Close sidebar when clicking backdrop
+    backdrop.addEventListener('click', function() {
+        sidebar.classList.remove('active');
+        backdrop.classList.remove('active');
+        body.classList.remove('sidebar-open');
+    });
+    
+    // Close sidebar on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+            sidebar.classList.remove('active');
+            backdrop.classList.remove('active');
+            body.classList.remove('sidebar-open');
+        }
+    });
+    
+    // Add active class to current page in sidebar
+    const currentPath = window.location.pathname;
+    const sidebarLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+    
+    sidebarLinks.forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
+            link.classList.add('active');
+        }
+    });
 }
 
 // Navigation enhancements
@@ -41,7 +85,7 @@ function initializeNavigation() {
         }
     });
     
-    // Mobile navigation improvements
+    // Mobile navigation improvements - Legacy support
     const navbarToggler = document.querySelector('.navbar-toggler');
     const navbarCollapse = document.querySelector('.navbar-collapse');
     
