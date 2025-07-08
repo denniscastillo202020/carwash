@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Car Wash Manager{% endblock %}</title>
     
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome Icons -->
@@ -97,15 +101,40 @@
         {% endif %}
     {% endwith %}
 
+    <!-- Background Upload Area -->
+    <div class="background-upload-area" id="backgroundUpload">
+        <div class="upload-hint">
+            <i class="fas fa-cloud-upload-alt mb-2"></i><br>
+            Arrastra y suelta una imagen para cambiar el fondo
+        </div>
+    </div>
+
+    <!-- Watermark Logo -->
+    <div class="watermark-logo"></div>
+
+    <!-- Floating Messages -->
+    <div class="floating-message">
+        <i class="fas fa-car me-2"></i>
+        Car Wash Peña Blanca - Servicio Profesional
+    </div>
+    <div class="floating-message delay-1">
+        <i class="fas fa-phone me-2"></i>
+        Tel: 9464-8987
+    </div>
+    <div class="floating-message delay-2">
+        <i class="fas fa-map-marker-alt me-2"></i>
+        Peña Blanca, Cortés
+    </div>
+
     <!-- Main Content -->
     <main class="container my-4">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="bg-light text-center py-3 mt-5">
+    <footer class="text-center py-3 mt-5" style="background: var(--light-gray); border-top: 1px solid var(--border-color);">
         <div class="container">
-            <p class="mb-0">&copy; 2025 Car Wash Peña Blanca - Tel: 9464-8987</p>
+            <p class="mb-0 text-muted">&copy; 2025 Car Wash Peña Blanca - Tel: 9464-8987</p>
         </div>
     </footer>
 

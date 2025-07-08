@@ -1,184 +1,366 @@
-/* Car Wash Manager Custom Styles */
+/* Car Wash Manager - Minimalist Professional Design */
 
 :root {
-    --primary-color: #0066cc;
-    --success-color: #28a745;
-    --warning-color: #ffc107;
-    --danger-color: #dc3545;
-    --info-color: #17a2b8;
-    --light-color: #f8f9fa;
-    --dark-color: #343a40;
-    --carwash-blue: #1e90ff;
-    --carwash-green: #32cd32;
-    --lempira-gold: #ffd700;
+    --primary-color: #000000;
+    --secondary-color: #ffffff;
+    --accent-color: #333333;
+    --light-gray: #f8f9fa;
+    --border-color: #e0e0e0;
+    --shadow-light: rgba(0, 0, 0, 0.1);
+    --shadow-medium: rgba(0, 0, 0, 0.2);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Global Styles */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f5f7fa;
-    color: #2c3e50;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #ffffff;
+    color: #000000;
+    line-height: 1.6;
+    position: relative;
+    overflow-x: hidden;
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgo8cGF0aCBkPSJNIDYwIDAgTCAwIDAgMCA2MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZjBmMGYwIiBzdHJva2Utd2lkdGg9IjEiLz4KPC9wYXR0ZXJuPgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz4KPC9zdmc+');
+    background-size: 60px 60px;
 }
 
-/* Navigation Enhancements */
+/* Custom Background Upload Area */
+.background-upload-area {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: #ffffff;
+    transition: var(--transition-smooth);
+}
+
+.background-upload-area.drag-over {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.background-upload-area .upload-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #ccc;
+    font-size: 14px;
+    opacity: 0;
+    transition: var(--transition-smooth);
+    pointer-events: none;
+}
+
+.background-upload-area:hover .upload-hint {
+    opacity: 1;
+}
+
+/* Watermark Logo */
+.watermark-logo {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 120px;
+    height: 120px;
+    opacity: 0.03;
+    z-index: 0;
+    pointer-events: none;
+    background: url('/static/images/logo.jpg') center/cover no-repeat;
+    border-radius: 50%;
+    filter: grayscale(100%);
+    animation: watermarkFloat 8s ease-in-out infinite;
+}
+
+@keyframes watermarkFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(2deg); }
+}
+
+/* Floating Messages */
+.floating-message {
+    position: fixed;
+    top: 50%;
+    left: -300px;
+    transform: translateY(-50%);
+    background: linear-gradient(135deg, #000000, #333333);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 25px;
+    box-shadow: 0 8px 32px var(--shadow-medium);
+    z-index: 1000;
+    font-size: 14px;
+    font-weight: 500;
+    animation: floatMessage 12s ease-in-out infinite;
+    backdrop-filter: blur(10px);
+}
+
+@keyframes floatMessage {
+    0%, 90%, 100% { left: -300px; opacity: 0; }
+    10%, 80% { left: 20px; opacity: 1; }
+}
+
+.floating-message.delay-1 { animation-delay: 4s; }
+.floating-message.delay-2 { animation-delay: 8s; }
+
+/* Navigation - Minimalist Style */
+.navbar {
+    background: var(--primary-color) !important;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 2px 20px var(--shadow-light);
+    backdrop-filter: blur(10px);
+}
+
 .navbar-brand {
-    font-weight: bold;
-    font-size: 1.3rem;
+    font-weight: 700;
+    font-size: 1.2rem;
     display: flex;
     align-items: center;
+    color: var(--secondary-color) !important;
+    letter-spacing: -0.5px;
 }
 
 .navbar-brand img {
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    opacity: 0.9;
+    transition: var(--transition-smooth);
+}
+
+.navbar-brand:hover img {
+    opacity: 1;
 }
 
 .navbar-nav .nav-link {
     font-weight: 500;
-    transition: all 0.3s ease;
-    margin: 0 0.25rem;
-    border-radius: 0.25rem;
-}
-
-.navbar-nav .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: translateY(-1px);
-}
-
-/* Card Enhancements */
-.card {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-    margin-bottom: 1.5rem;
-}
-
-.card:hover {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
-}
-
-.card-header {
-    background: linear-gradient(135deg, var(--primary-color), var(--carwash-blue));
-    color: white;
-    border-radius: 12px 12px 0 0 !important;
-    border: none;
-    padding: 1rem 1.5rem;
-}
-
-.card-header h5 {
-    margin: 0;
-    font-weight: 600;
-}
-
-/* Button Enhancements */
-.btn {
-    border-radius: 8px;
-    font-weight: 500;
-    padding: 0.5rem 1.2rem;
-    transition: all 0.3s ease;
-    border: none;
-}
-
-.btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, var(--primary-color), var(--carwash-blue));
-}
-
-.btn-success {
-    background: linear-gradient(135deg, var(--success-color), var(--carwash-green));
-}
-
-.btn-warning {
-    background: linear-gradient(135deg, var(--warning-color), var(--lempira-gold));
-    color: #333;
-}
-
-/* Form Enhancements */
-.form-control, .form-select {
-    border-radius: 8px;
-    border: 2px solid #e9ecef;
-    padding: 0.75rem 1rem;
-    transition: all 0.3s ease;
-}
-
-.form-control:focus, .form-select:focus {
-    border-color: var(--carwash-blue);
-    box-shadow: 0 0 0 0.2rem rgba(30, 144, 255, 0.25);
-    transform: translateY(-1px);
-}
-
-.form-label {
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 0.5rem;
-}
-
-/* Dashboard Metrics Cards */
-.card.bg-primary, .card.bg-success, .card.bg-info, .card.bg-warning {
-    border-radius: 15px;
-    overflow: hidden;
+    transition: var(--transition-smooth);
+    margin: 0 0.5rem;
+    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.8) !important;
     position: relative;
 }
 
-.card.bg-primary::before,
-.card.bg-success::before,
-.card.bg-info::before,
-.card.bg-warning::before {
+.navbar-nav .nav-link:hover {
+    color: var(--secondary-color) !important;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-nav .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--secondary-color);
+    transition: var(--transition-smooth);
+    transform: translateX(-50%);
+}
+
+.navbar-nav .nav-link:hover::after {
+    width: 80%;
+}
+
+/* Card Enhancements - Minimalist */
+.card {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 24px var(--shadow-light);
+    transition: var(--transition-smooth);
+    margin-bottom: 1.5rem;
+    background: var(--secondary-color);
+}
+
+.card:hover {
+    box-shadow: 0 8px 40px var(--shadow-medium);
+    transform: translateY(-4px);
+    border-color: var(--accent-color);
+}
+
+.card-header {
+    background: var(--primary-color);
+    color: var(--secondary-color);
+    border-radius: 8px 8px 0 0 !important;
+    border: none;
+    padding: 1.2rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-header::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
-    pointer-events: none;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--secondary-color), transparent);
 }
 
-/* Table Enhancements */
-.table {
-    border-radius: 12px;
+.card-header h5 {
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+
+/* Button Enhancements - Minimalist */
+.btn {
+    border-radius: 4px;
+    font-weight: 500;
+    padding: 0.65rem 1.5rem;
+    transition: var(--transition-smooth);
+    border: 1px solid transparent;
+    position: relative;
     overflow: hidden;
-    background: white;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: var(--transition-smooth);
+}
+
+.btn:hover::before {
+    left: 100%;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--shadow-medium);
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: var(--secondary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--secondary-color);
+}
+
+.btn-success {
+    background: var(--secondary-color);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-success:hover {
+    background: var(--primary-color);
+    color: var(--secondary-color);
+}
+
+.btn-warning {
+    background: var(--light-gray);
+    color: var(--primary-color);
+    border-color: var(--border-color);
+}
+
+.btn-warning:hover {
+    background: var(--accent-color);
+    color: var(--secondary-color);
+    border-color: var(--accent-color);
+}
+
+/* Form Enhancements - Minimalist */
+.form-control, .form-select {
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    padding: 0.8rem 1rem;
+    transition: var(--transition-smooth);
+    background: var(--secondary-color);
+    color: var(--primary-color);
+    font-size: 14px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+    outline: none;
+    background: var(--secondary-color);
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    font-size: 14px;
+    letter-spacing: -0.2px;
+}
+
+/* Dashboard Metrics Cards - Minimalist */
+.card.bg-primary, .card.bg-success, .card.bg-info, .card.bg-warning {
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    background: var(--secondary-color) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--primary-color) !important;
+}
+
+.card.bg-primary .card-body,
+.card.bg-success .card-body,
+.card.bg-info .card-body,
+.card.bg-warning .card-body {
+    position: relative;
+    z-index: 1;
+}
+
+.card.bg-primary::before {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.05), transparent);
+}
+
+/* Table Enhancements - Minimalist */
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--secondary-color);
+    border: 1px solid var(--border-color);
 }
 
 .table thead th {
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    background: var(--light-gray);
     border: none;
     font-weight: 600;
-    color: #495057;
+    color: var(--primary-color);
     padding: 1rem;
+    font-size: 14px;
+    letter-spacing: -0.2px;
 }
 
 .table tbody tr {
-    transition: all 0.3s ease;
+    transition: var(--transition-smooth);
 }
 
 .table tbody tr:hover {
-    background-color: rgba(30, 144, 255, 0.05);
-    transform: scale(1.01);
+    background-color: rgba(0, 0, 0, 0.02);
 }
 
 .table td {
     padding: 1rem;
-    border-color: #f1f3f4;
+    border-color: var(--border-color);
     vertical-align: middle;
+    color: var(--primary-color);
 }
 
-/* Product/Service Cards */
+/* Product/Service Cards - Minimalist */
 .product-card, .service-card {
-    transition: all 0.3s ease;
+    transition: var(--transition-smooth);
     cursor: pointer;
-    border: 2px solid transparent;
+    border: 1px solid var(--border-color);
+    background: var(--secondary-color);
 }
 
 .product-card:hover, .service-card:hover {
-    border-color: var(--carwash-blue);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 16px var(--shadow-light);
+}
     box-shadow: 0 6px 20px rgba(30, 144, 255, 0.15);
     transform: translateY(-3px);
 }

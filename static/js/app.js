@@ -24,6 +24,7 @@ function initializeApp() {
     initializeCustomerSearch();
     initializeTooltips();
     initializeAutoSave();
+    initializeBackgroundUpload();
     
     console.log('Car Wash Manager - Ready!');
 }
@@ -730,5 +731,138 @@ function enhanceTableSearch() {
 document.addEventListener('DOMContentLoaded', function() {
     enhanceTableSearch();
 });
+
+// Background Upload Drag & Drop Functionality
+function initializeBackgroundUpload() {
+    const uploadArea = document.getElementById('backgroundUpload');
+    const body = document.body;
+    
+    if (!uploadArea) return;
+    
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+        body.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    // Highlight drop area when item is dragged over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    // Handle dropped files
+    uploadArea.addEventListener('drop', handleDrop, false);
+    
+    // Handle file input change (for mobile/fallback)
+    const fileInput = createFileInput();
+    uploadArea.addEventListener('click', () => fileInput.click());
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    function highlight(e) {
+        uploadArea.classList.add('drag-over');
+    }
+    
+    function unhighlight(e) {
+        uploadArea.classList.remove('drag-over');
+    }
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }
+    
+    function createFileInput() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.style.display = 'none';
+        input.addEventListener('change', (e) => handleFiles(e.target.files));
+        document.body.appendChild(input);
+        return input;
+    }
+    
+    function handleFiles(files) {
+        if (files.length === 0) return;
+        
+        const file = files[0];
+        if (!file.type.startsWith('image/')) {
+            showNotification('Por favor selecciona una imagen válida', 'error');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imageUrl = e.target.result;
+            setBackgroundImage(imageUrl);
+            showNotification('Fondo actualizado exitosamente', 'success');
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    function setBackgroundImage(imageUrl) {
+        // Store in localStorage for persistence
+        localStorage.setItem('customBackground', imageUrl);
+        
+        // Apply background
+        uploadArea.style.backgroundImage = `url(${imageUrl})`;
+        uploadArea.style.backgroundSize = 'cover';
+        uploadArea.style.backgroundPosition = 'center';
+        uploadArea.style.backgroundRepeat = 'no-repeat';
+        
+        // Add overlay for better readability
+        uploadArea.style.background = `
+            linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
+            url(${imageUrl}) center/cover no-repeat
+        `;
+    }
+    
+    // Load saved background on page load
+    const savedBackground = localStorage.getItem('customBackground');
+    if (savedBackground) {
+        setBackgroundImage(savedBackground);
+    }
+    
+    // Add reset background option
+    const resetBtn = document.createElement('button');
+    resetBtn.innerHTML = '<i class="fas fa-undo"></i> Restaurar Fondo';
+    resetBtn.className = 'btn btn-sm btn-outline-secondary position-fixed';
+    resetBtn.style.cssText = 'bottom: 20px; right: 20px; z-index: 1000; opacity: 0.7;';
+    resetBtn.onclick = function() {
+        localStorage.removeItem('customBackground');
+        uploadArea.style.background = '';
+        uploadArea.style.backgroundImage = '';
+        showNotification('Fondo restaurado', 'info');
+    };
+    document.body.appendChild(resetBtn);
+}
+
+// Enhanced notification system
+function showNotification(message, type = 'info', duration = 3000) {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-dismiss after duration
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, duration);
+}
 
 console.log('Car Wash Manager JavaScript loaded successfully!');
