@@ -122,19 +122,43 @@
     <!-- Watermark Logo -->
     <div class="watermark-logo"></div>
 
-    <!-- Sliding Ribbon Messages -->
-    <div class="ribbon-message">
-        <i class="fas fa-star me-2"></i>
-        Servicio Profesional de Calidad
+    <!-- Editable Notes System -->
+    <div class="notes-container">
+        <div class="sticky-note" id="note1" style="top: 20px; right: 20px;">
+            <div class="note-header">
+                <i class="fas fa-sticky-note"></i>
+                <button class="note-close" onclick="closeNote('note1')">×</button>
+            </div>
+            <div class="note-content" contenteditable="true" data-note="note1">
+                Lavado Completo + Encerado por solo L 200
+            </div>
+        </div>
+        
+        <div class="sticky-note" id="note2" style="top: 20px; right: 280px;">
+            <div class="note-header">
+                <i class="fas fa-sticky-note"></i>
+                <button class="note-close" onclick="closeNote('note2')">×</button>
+            </div>
+            <div class="note-content" contenteditable="true" data-note="note2">
+                Descuento del 15% en servicios premium
+            </div>
+        </div>
+        
+        <div class="sticky-note" id="note3" style="top: 180px; right: 20px;">
+            <div class="note-header">
+                <i class="fas fa-sticky-note"></i>
+                <button class="note-close" onclick="closeNote('note3')">×</button>
+            </div>
+            <div class="note-content" contenteditable="true" data-note="note3">
+                Agenda tu cita: 97164446
+            </div>
+        </div>
     </div>
-    <div class="ribbon-message delay-1">
-        <i class="fas fa-phone me-2"></i>
-        Tel: 9464-8987
-    </div>
-    <div class="ribbon-message delay-2">
-        <i class="fas fa-map-marker-alt me-2"></i>
-        Peña Blanca, Cortés
-    </div>
+    
+    <!-- Add Note Button -->
+    <button class="add-note-btn" onclick="addNewNote()">
+        <i class="fas fa-plus"></i> Nota
+    </button>
 
     <!-- Main Title Section -->
     <div class="main-title">
@@ -163,6 +187,82 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    
+    <script>
+    // Sticky Notes Management
+    let noteCounter = 3;
+    
+    function closeNote(noteId) {
+        const note = document.getElementById(noteId);
+        if (note) {
+            note.style.animation = 'fadeOut 0.3s ease-out forwards';
+            setTimeout(() => note.remove(), 300);
+        }
+    }
+    
+    function addNewNote() {
+        noteCounter++;
+        const notesContainer = document.querySelector('.notes-container');
+        const colors = ['#ffeb3b', '#4fc3f7', '#81c784', '#ff8a65', '#ba68c8'];
+        const rotations = ['-2deg', '1deg', '-1deg', '2deg', '-3deg'];
+        
+        const newNote = document.createElement('div');
+        newNote.className = 'sticky-note';
+        newNote.id = `note${noteCounter}`;
+        newNote.style.cssText = `
+            top: ${Math.random() * 200 + 20}px; 
+            right: ${Math.random() * 300 + 20}px;
+            background: ${colors[noteCounter % colors.length]};
+            transform: rotate(${rotations[noteCounter % rotations.length]});
+        `;
+        
+        newNote.innerHTML = \`
+            <div class="note-header">
+                <i class="fas fa-sticky-note"></i>
+                <button class="note-close" onclick="closeNote('note\${noteCounter}')">×</button>
+            </div>
+            <div class="note-content" contenteditable="true" data-note="note\${noteCounter}">
+                Nueva nota...
+            </div>
+        \`;
+        
+        notesContainer.appendChild(newNote);
+        
+        // Focus on the new note content
+        const contentArea = newNote.querySelector('.note-content');
+        contentArea.focus();
+        contentArea.select();
+    }
+    
+    // Auto-save note content
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('note-content')) {
+            const noteId = e.target.getAttribute('data-note');
+            localStorage.setItem(noteId, e.target.textContent);
+        }
+    });
+    
+    // Load saved notes on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.note-content').forEach(note => {
+            const noteId = note.getAttribute('data-note');
+            const savedContent = localStorage.getItem(noteId);
+            if (savedContent) {
+                note.textContent = savedContent;
+            }
+        });
+    });
+    
+    // Add fadeOut animation
+    const style = document.createElement('style');
+    style.textContent = \`
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.8); }
+        }
+    \`;
+    document.head.appendChild(style);
+    </script>
     
     {% block scripts %}{% endblock %}
 </body>
