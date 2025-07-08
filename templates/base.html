@@ -17,75 +17,85 @@
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Car Wash Peña Blanca" height="40" class="me-2">
-                Car Wash Peña Blanca
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">
-                            <i class="fas fa-home"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('inventory') }}">
-                            <i class="fas fa-boxes"></i> Inventario
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('customers') }}">
-                            <i class="fas fa-users"></i> Clientes
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('invoice') }}">
-                            <i class="fas fa-file-invoice"></i> Facturar
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('appointments') }}">
-                            <i class="fab fa-whatsapp"></i> Citas
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('cash_closing') }}">
-                            <i class="fas fa-cash-register"></i> Arqueo
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('analytics') }}">
-                            <i class="fas fa-chart-bar"></i> Análisis
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-download"></i> Exportar
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('export_invoices') }}">
-                                <i class="fas fa-file-excel"></i> Facturas del Día
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('export_cash_closings') }}">
-                                <i class="fas fa-file-excel"></i> Arqueos de Caja
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('export_analytics') }}">
-                                <i class="fas fa-file-excel"></i> Reporte Análisis
-                            </a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"></div>
+            <h2 class="sidebar-title">Car Wash</h2>
+            <p class="sidebar-subtitle">Peña Blanca</p>
         </div>
-    </nav>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-item">
+                <a class="nav-link" href="{{ url_for('index') }}">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+            </div>
+            <div class="nav-item">
+                <a class="nav-link" href="{{ url_for('inventory') }}">
+                    <i class="fas fa-boxes"></i>
+                    Inventario
+                </a>
+            </div>
+            <div class="nav-item">
+                <a class="nav-link" href="{{ url_for('customers') }}">
+                    <i class="fas fa-users"></i>
+                    Clientes
+                </a>
+            </div>
+            <div class="nav-item">
+                <a class="nav-link" href="{{ url_for('invoice') }}">
+                    <i class="fas fa-file-invoice"></i>
+                    Facturar
+                </a>
+            </div>
+            <div class="nav-item">
+                <a class="nav-link" href="{{ url_for('appointments') }}">
+                    <i class="fab fa-whatsapp"></i>
+                    Citas
+                </a>
+            </div>
+            <div class="nav-item">
+                <a class="nav-link" href="{{ url_for('cash_closing') }}">
+                    <i class="fas fa-cash-register"></i>
+                    Arqueo
+                </a>
+            </div>
+            <div class="nav-item">
+                <a class="nav-link" href="{{ url_for('analytics') }}">
+                    <i class="fas fa-chart-bar"></i>
+                    Análisis
+                </a>
+            </div>
+            <div class="nav-item">
+                <a class="nav-link" href="{{ url_for('export_invoices') }}">
+                    <i class="fas fa-file-excel"></i>
+                    Exportar Facturas
+                </a>
+            </div>
+            <div class="nav-item">
+                <a class="nav-link" href="{{ url_for('export_cash_closings') }}">
+                    <i class="fas fa-file-excel"></i>
+                    Exportar Arqueos
+                </a>
+            </div>
+            <div class="nav-item">
+                <a class="nav-link" href="{{ url_for('export_analytics') }}">
+                    <i class="fas fa-chart-line"></i>
+                    Exportar Análisis
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Sidebar Backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -112,18 +122,29 @@
     <!-- Watermark Logo -->
     <div class="watermark-logo"></div>
 
-    <!-- Floating Messages -->
-    <div class="floating-message">
-        <i class="fas fa-car me-2"></i>
-        Car Wash Peña Blanca - Servicio Profesional
+    <!-- Sliding Ribbon Messages -->
+    <div class="ribbon-message">
+        <i class="fas fa-star me-2"></i>
+        Servicio Profesional de Calidad
     </div>
-    <div class="floating-message delay-1">
+    <div class="ribbon-message delay-1">
         <i class="fas fa-phone me-2"></i>
         Tel: 9464-8987
     </div>
-    <div class="floating-message delay-2">
+    <div class="ribbon-message delay-2">
         <i class="fas fa-map-marker-alt me-2"></i>
         Peña Blanca, Cortés
+    </div>
+
+    <!-- Main Title Section -->
+    <div class="main-title">
+        <h1>Car Wash Peña Blanca</h1>
+        <p class="subtitle">Sistema de Gestión Integral</p>
+        <p class="business-info">
+            <i class="fas fa-phone me-2"></i>9464-8987 
+            <span class="mx-3">|</span>
+            <i class="fas fa-map-marker-alt me-2"></i>Peña Blanca, Cortés
+        </p>
     </div>
 
     <!-- Main Content -->
