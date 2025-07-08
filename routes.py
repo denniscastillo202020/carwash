@@ -261,10 +261,25 @@ def create_invoice():
         # Update invoice total
         invoice.total_amount = total_amount
         
-        # If payment is cash, redirect to cash register
+        # Process cash payment if efectivo
         if payment_method == 'efectivo':
-            db.session.commit()
-            return redirect(url_for('cash_register', invoice_id=invoice.id))
+            # Get denomination data from form
+            cash_data = {}
+            for field in ['bills_500', 'bills_200', 'bills_100', 'bills_50', 'bills_20', 
+                         'bills_10', 'bills_5', 'bills_2', 'bills_1', 
+                         'coins_50c', 'coins_20c', 'coins_10c', 'coins_5c']:
+                cash_data[field] = int(request.form.get(field, 0))
+            
+            # Calculate total cash received
+            total_cash = calculate_cash_total(cash_data)
+            
+            # Create cash register entry
+            cash_entry = CashRegisterEntry(
+                invoice_id=invoice.id,
+                total_amount=total_cash,
+                **cash_data
+            )
+            db.session.add(cash_entry)
         
         # Update customer CRM
         update_customer_crm(customer.id)
