@@ -145,42 +145,5 @@
     </div>
 </div>
 
-<!-- Quick Actions -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="fas fa-bolt"></i> Acciones Rápidas</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3 mb-2">
-                        <a href="{{ url_for('invoice') }}" class="btn btn-primary btn-lg w-100">
-                            <i class="fas fa-file-invoice"></i><br>
-                            Nueva Factura
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <a href="{{ url_for('appointments') }}" class="btn btn-success btn-lg w-100">
-                            <i class="fab fa-whatsapp"></i><br>
-                            Nueva Cita
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <a href="{{ url_for('customers') }}" class="btn btn-info btn-lg w-100">
-                            <i class="fas fa-user-plus"></i><br>
-                            Nuevo Cliente
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <a href="{{ url_for('inventory') }}" class="btn btn-warning btn-lg w-100">
-                            <i class="fas fa-plus-circle"></i><br>
-                            Agregar Producto
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 {% endblock %}
