@@ -1289,6 +1289,37 @@ def export_invoices():
         download_name=filename
     )
 
+@app.route('/adjust_stock', methods=['POST'])
+def adjust_stock():
+    """Adjust product stock via AJAX"""
+    try:
+        data = request.get_json()
+        product_id = data.get('product_id')
+        action = data.get('action')
+        amount = int(data.get('amount', 0))
+        
+        if not product_id or not action or amount <= 0:
+            return jsonify({'success': False, 'error': 'Datos inválidos'})
+        
+        product = Product.query.get_or_404(product_id)
+        
+        if action == 'add':
+            product.stock += amount
+        elif action == 'remove':
+            if product.stock >= amount:
+                product.stock -= amount
+            else:
+                return jsonify({'success': False, 'error': 'Stock insuficiente'})
+        else:
+            return jsonify({'success': False, 'error': 'Acción inválida'})
+        
+        db.session.commit()
+        return jsonify({'success': True, 'new_stock': product.stock})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
 @app.context_processor
 def utility_processor():
     """Make utility functions available in templates"""
